@@ -29,6 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'subir_logo') {
+    $idLogo = (int)($_POST['id'] ?? 0);
+    $ok = $idLogo > 0 && procesarLogoMarca($pdo, $idLogo, $_SESSION['tsp_usuario_id']);
+    redirigirConMensaje('marcas.php', $ok ? 'ok' : 'error', $ok ? 'Logo actualizado.' : 'No se pudo subir el logo (verifique que sea PNG, JPG o JPEG).');
+}
+
 if (isset($_GET['toggle'])) {
     $id = (int)$_GET['toggle'];
     $sqlToggle = "UPDATE tbl_hotwheels_marcas SET state = IF(state=1,0,1) WHERE id=?";
@@ -70,10 +76,25 @@ include __DIR__ . '/../includes/header.php';
             <h6 class="panel-title"><i class="bi bi-list-ul"></i> Marcas Registradas</h6>
             <div class="table-responsive">
                 <table class="table table-sm table-tsp align-middle">
-                    <thead><tr><th>Nombre</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th style="width:50px;">Logo</th><th>Nombre</th><th>Estado</th><th>Acciones</th></tr></thead>
                     <tbody>
                     <?php foreach ($marcas as $m): ?>
+                        <?php $rutaLogo = resolverRutaMiniaturaLogoMarca($m['id']) ?: resolverRutaLogoMarca($m['id']); ?>
                         <tr>
+                            <td>
+                                <form method="post" enctype="multipart/form-data" action="settings/marcas.php">
+                                    <input type="hidden" name="accion" value="subir_logo">
+                                    <input type="hidden" name="id" value="<?= $m['id'] ?>">
+                                    <label class="cursor-pointer d-inline-block mb-0" title="Subir/cambiar logo">
+                                        <?php if ($rutaLogo): ?>
+                                            <img src="<?= limpiar($rutaLogo) ?>" style="width:36px;height:36px;object-fit:cover;border-radius:4px;">
+                                        <?php else: ?>
+                                            <i class="bi bi-camera text-muted" style="font-size:1.4rem;"></i>
+                                        <?php endif; ?>
+                                        <input type="file" name="logo" class="d-none" accept=".png,.jpg,.jpeg" onchange="this.form.submit()">
+                                    </label>
+                                </form>
+                            </td>
                             <td><?= limpiar($m['nombre']) ?></td>
                             <td><span class="badge <?= (int)$m['state']===1?'bg-success':'bg-secondary' ?>"><?= (int)$m['state']===1?'Activo':'Inactivo' ?></span></td>
                             <td class="text-nowrap">
@@ -82,7 +103,7 @@ include __DIR__ . '/../includes/header.php';
                             </td>
                         </tr>
                     <?php endforeach; ?>
-                    <?php if (!$marcas): ?><tr><td colspan="3" class="text-center text-muted">No hay marcas registradas.</td></tr><?php endif; ?>
+                    <?php if (!$marcas): ?><tr><td colspan="4" class="text-center text-muted">No hay marcas registradas.</td></tr><?php endif; ?>
                     </tbody>
                 </table>
             </div>

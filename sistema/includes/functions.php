@@ -154,6 +154,46 @@ function resolverRutaMiniaturaCarro($idCarro, $nombreArchivo) {
     return file_exists(__DIR__ . '/../' . $rel) ? $rel : null;
 }
 
+/** Ruta (relativa al webroot sistema/) del logo real de una marca, o null si no existe. */
+function resolverRutaLogoMarca($idMarca) {
+    $rel = 'files/marcas/folder_' . $idMarca . '/fot_' . $idMarca . '.jpg';
+    return file_exists(__DIR__ . '/../' . $rel) ? $rel : null;
+}
+
+/** Ruta de la miniatura del logo de una marca, o null si no existe. */
+function resolverRutaMiniaturaLogoMarca($idMarca) {
+    $rel = 'files/marcas/folder_' . $idMarca . '/thumbnail/s_fot_' . $idMarca . '.jpg';
+    return file_exists(__DIR__ . '/../' . $rel) ? $rel : null;
+}
+
+/**
+ * Sube y guarda el logo de una marca (jpg/jpeg/png, siempre convertido a jpg) desde
+ * $_FILES['logo'], en files/marcas/folder_{idMarca}/fot_{idMarca}.jpg (reemplaza el
+ * anterior si ya existía) y su miniatura JPG s_fot_{idMarca}.jpg en la subcarpeta
+ * thumbnail/. A diferencia de las fotos de un auto, aquí solo hay un logo por marca,
+ * así que el nombre de archivo no lleva numeración secuencial.
+ */
+function procesarLogoMarca($pdo, $idMarca, $userId) {
+    if (empty($_FILES['logo']['name']) || $_FILES['logo']['error'] !== UPLOAD_ERR_OK) return false;
+
+    $ext = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, ['png', 'jpg', 'jpeg'], true)) return false;
+
+    $carpetaMarca = __DIR__ . '/../files/marcas/folder_' . $idMarca;
+    $carpetaMiniaturas = $carpetaMarca . '/thumbnail';
+    if (!is_dir($carpetaMiniaturas)) mkdir($carpetaMiniaturas, 0755, true);
+
+    $nombreGuardado = 'fot_' . $idMarca . '.jpg';
+    $rutaDestino = $carpetaMarca . '/' . $nombreGuardado;
+    $rutaMiniatura = $carpetaMiniaturas . '/s_' . $nombreGuardado;
+
+    $guardadoOk = guardarImagenJpgConMiniatura($_FILES['logo']['tmp_name'], $ext, $rutaDestino, $rutaMiniatura);
+    if ($guardadoOk) {
+        registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_marcas', $idMarca, '', 'Actualización del logo de la marca');
+    }
+    return $guardadoOk;
+}
+
 function redirigirConMensaje($url, $tipo, $mensaje) {
     $separador = str_contains($url, '?') ? '&' : '?';
     header("Location: $url{$separador}msg_tipo=$tipo&msg=" . urlencode($mensaje));
