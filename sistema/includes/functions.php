@@ -53,122 +53,6 @@ function limpiar($valor) {
     return htmlspecialchars(trim($valor ?? ''), ENT_QUOTES, 'UTF-8');
 }
 
-/**
- * Valida y convierte una imagen subida (jpg/jpeg/png) a JPG, guardando el archivo final
- * y una miniatura JPG a partir de las rutas indicadas. La transparencia de los PNG se
- * aplana sobre fondo blanco, ya que JPG no soporta canal alfa.
- * Devuelve true si tanto la imagen como la miniatura se guardaron correctamente.
- */
-function guardarImagenJpgConMiniatura($rutaTmpSubida, $extensionOriginal, $rutaDestino, $rutaDestinoMiniatura, $ladoMaxMiniatura = 200) {
-    $info = @getimagesize($rutaTmpSubida);
-    if (!$info) return false;
-
-    $ext = strtolower($extensionOriginal);
-    if ($ext === 'png' && $info[2] === IMAGETYPE_PNG) {
-        $origen = @imagecreatefrompng($rutaTmpSubida);
-    } elseif (in_array($ext, ['jpg', 'jpeg'], true) && $info[2] === IMAGETYPE_JPEG) {
-        $origen = @imagecreatefromjpeg($rutaTmpSubida);
-    } else {
-        return false;
-    }
-    if (!$origen) return false;
-
-    $ancho = imagesx($origen);
-    $alto = imagesy($origen);
-
-    $lienzo = imagecreatetruecolor($ancho, $alto);
-    imagefill($lienzo, 0, 0, imagecolorallocate($lienzo, 255, 255, 255));
-    imagecopy($lienzo, $origen, 0, 0, 0, 0, $ancho, $alto);
-    imagedestroy($origen);
-
-    $guardadoOk = imagejpeg($lienzo, $rutaDestino, 90);
-
-    $escala = min(1, $ladoMaxMiniatura / max($ancho, $alto));
-    $anchoMini = max(1, (int) round($ancho * $escala));
-    $altoMini = max(1, (int) round($alto * $escala));
-    $miniatura = imagecreatetruecolor($anchoMini, $altoMini);
-    imagecopyresampled($miniatura, $lienzo, 0, 0, 0, 0, $anchoMini, $altoMini, $ancho, $alto);
-    $miniaturaOk = imagejpeg($miniatura, $rutaDestinoMiniatura, 85);
-
-    imagedestroy($lienzo);
-    imagedestroy($miniatura);
-
-    return $guardadoOk && $miniaturaOk;
-}
-
-/** Genera una miniatura JPG genérica (ícono de "reproducir") para videos, ya que no hay
- *  forma de extraer un fotograma real sin ffmpeg (no instalado en este servidor). */
-function guardarMiniaturaGenericaVideo($rutaDestino, $lado = 200) {
-    $img = imagecreatetruecolor($lado, $lado);
-    imagefill($img, 0, 0, imagecolorallocate($img, 33, 37, 41));
-    $blanco = imagecolorallocate($img, 255, 255, 255);
-    $cx = $lado / 2;
-    $cy = $lado / 2;
-    $r = $lado * 0.22;
-    $puntos = [
-        (int) round($cx - $r * 0.6), (int) round($cy - $r),
-        (int) round($cx - $r * 0.6), (int) round($cy + $r),
-        (int) round($cx + $r),       (int) round($cy),
-    ];
-    imagefilledpolygon($img, $puntos, $blanco);
-    $ok = imagejpeg($img, $rutaDestino, 85);
-    imagedestroy($img);
-    return $ok;
-}
-
-/**
- * Sube y guarda los archivos adjuntos de una solicitud de soporte (imágenes jpg/jpeg/png
- * convertidas a jpg, y videos mp4), en files/soportes/folder_{idSoporte}/ con nombres
- * ft{n}_{idSoporte}.jpg / vd{n}_{idSoporte}.mp4 (numeración secuencial por tipo dentro de
- * esa carpeta) y su miniatura JPG en la subcarpeta thumbnail/. Comparte esta lógica
- * soportes.php (creación) y soporte_detalle.php (edición).
- */
-function procesarArchivosAdjuntosSoporte($pdo, $idSoporte, $userId) {
-    if (empty($_FILES['archivos']['name'][0])) return;
-
-    $extensionesPermitidas = ['png', 'jpg', 'jpeg', 'mp4'];
-    $carpetaSoporte = __DIR__ . '/../files/soportes/folder_' . $idSoporte;
-    $carpetaMiniaturas = $carpetaSoporte . '/thumbnail';
-    if (!is_dir($carpetaMiniaturas)) mkdir($carpetaMiniaturas, 0755, true);
-
-    $siguienteFt = count(glob($carpetaSoporte . '/ft*.jpg')) + 1;
-    $siguienteVd = count(glob($carpetaSoporte . '/vd*.mp4')) + 1;
-
-    foreach ($_FILES['archivos']['name'] as $i => $nombreOriginal) {
-        if ($_FILES['archivos']['error'][$i] !== UPLOAD_ERR_OK) continue;
-        $ext = strtolower(pathinfo($nombreOriginal, PATHINFO_EXTENSION));
-        if (!in_array($ext, $extensionesPermitidas, true)) continue;
-        $esVideo = $ext === 'mp4';
-        $guardadoOk = false;
-
-        if ($esVideo) {
-            $nombreGuardado = 'vd' . $siguienteVd . '_' . $idSoporte . '.mp4';
-            $rutaDestino = $carpetaSoporte . '/' . $nombreGuardado;
-            $guardadoOk = move_uploaded_file($_FILES['archivos']['tmp_name'][$i], $rutaDestino);
-            if ($guardadoOk) {
-                $rutaMiniatura = $carpetaMiniaturas . '/s_' . pathinfo($nombreGuardado, PATHINFO_FILENAME) . '.jpg';
-                guardarMiniaturaGenericaVideo($rutaMiniatura);
-                $siguienteVd++;
-            }
-        } else {
-            $nombreGuardado = 'ft' . $siguienteFt . '_' . $idSoporte . '.jpg';
-            $rutaDestino = $carpetaSoporte . '/' . $nombreGuardado;
-            $rutaMiniatura = $carpetaMiniaturas . '/s_' . pathinfo($nombreGuardado, PATHINFO_FILENAME) . '.jpg';
-            $guardadoOk = guardarImagenJpgConMiniatura($_FILES['archivos']['tmp_name'][$i], $ext, $rutaDestino, $rutaMiniatura);
-            if ($guardadoOk) $siguienteFt++;
-        }
-
-        if ($guardadoOk) {
-            $tipoArchivo = $esVideo ? 'video' : 'imagen';
-            $sqlArch = "INSERT INTO tbl_soportes_archivos (id_tbl_soportes, archivo, nombre_original, tipo_archivo, user_ing) VALUES (?,?,?,?,?)";
-            $paramsArch = [$idSoporte, $nombreGuardado, $nombreOriginal, $tipoArchivo, $userId];
-            $insArch = $pdo->prepare($sqlArch);
-            $insArch->execute($paramsArch);
-            registrarAuditoria($pdo, 'INS', 'tbl_soportes_archivos', (int)$pdo->lastInsertId(), interpolarSql($pdo, $sqlArch, $paramsArch), 'Adjunto de archivo a la solicitud de soporte');
-        }
-    }
-}
-
 /** Ruta (relativa al webroot sistema/) del archivo adjunto real de un soporte, con
  *  compatibilidad hacia atrás: si no existe en el esquema nuevo (files/soportes/folder_{id}/),
  *  cae al esquema plano anterior (files/soportes/{archivo}) usado antes de esta carpeta. */
@@ -176,13 +60,6 @@ function resolverRutaArchivoSoporte($idSoporte, $nombreArchivo) {
     $relNueva = 'files/soportes/folder_' . $idSoporte . '/' . $nombreArchivo;
     if (file_exists(__DIR__ . '/../' . $relNueva)) return $relNueva;
     return 'files/soportes/' . $nombreArchivo;
-}
-
-/** Ruta de la miniatura de un adjunto de soporte, o null si no existe (adjuntos del
- *  esquema plano anterior no tienen miniatura). */
-function resolverRutaMiniaturaSoporte($idSoporte, $nombreArchivo) {
-    $rel = 'files/soportes/folder_' . $idSoporte . '/thumbnail/s_' . pathinfo($nombreArchivo, PATHINFO_FILENAME) . '.jpg';
-    return file_exists(__DIR__ . '/../' . $rel) ? $rel : null;
 }
 
 function redirigirConMensaje($url, $tipo, $mensaje) {
@@ -330,21 +207,6 @@ function validarFormatoCorreo($correo) {
 }
 
 /**
- * Verifica si un correo ya existe en tbl_clientes (opcionalmente excluyendo un id).
- */
-function correoExisteEnClientes($pdo, $correo, $excluirId = 0) {
-    $sql = "SELECT id FROM tbl_clientes WHERE correo = ?";
-    $params = [$correo];
-    if ($excluirId > 0) {
-        $sql .= " AND id != ?";
-        $params[] = $excluirId;
-    }
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    return (bool) $stmt->fetch();
-}
-
-/**
  * Obtiene los ids de menú (tbl_menu_admin) que tiene asignado un perfil.
  */
 function obtenerPermisosDePerfil($pdo, $idPerfil) {
@@ -377,29 +239,6 @@ function requerirPermiso($idMenu) {
 }
 
 /**
- * Valida que el RUC/Cédula tenga exactamente 10 (cédula) o 13 (RUC) dígitos numéricos.
- */
-function validarRucCedula($valor) {
-    $valor = trim($valor ?? '');
-    return (bool) preg_match('/^\d{10}$|^\d{13}$/', $valor);
-}
-
-/**
- * Verifica si un RUC/Cédula ya existe en tbl_clientes (opcionalmente excluyendo un id).
- */
-function rucciExisteEnClientes($pdo, $rucci, $excluirId = 0) {
-    $sql = "SELECT id FROM tbl_clientes WHERE rucci = ?";
-    $params = [$rucci];
-    if ($excluirId > 0) {
-        $sql .= " AND id != ?";
-        $params[] = $excluirId;
-    }
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    return (bool) $stmt->fetch();
-}
-
-/**
  * Indica si una opción de menú tiene submenús (hijos) activos.
  */
 function menuTieneHijos($pdo, $idMenu) {
@@ -418,37 +257,6 @@ function botonVolverMenu() {
         $padre = (int)$_GET['padre'];
         echo '<a href="menu_opciones.php?padre=' . $padre . '" class="btn btn-sm btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> Volver atrás</a>';
     }
-}
-
-/**
- * Recalcula total_minutos y monto_total de un ticket de soporte a partir de
- * fecha_hora_solved_str, fecha_hora_solved_end y valor_por_hora.
- */
-function recalcularTiempoSoporte($pdo, $soporteId, $motivo = 'Recálculo de tiempo y costo del soporte') {
-    $stmt = $pdo->prepare("SELECT fecha_hora_solved_str, fecha_hora_solved_end, valor_por_hora FROM tbl_soportes WHERE id = ?");
-    $stmt->execute([$soporteId]);
-    $s = $stmt->fetch();
-    if (!$s) return;
-
-    $totalMinutos = 0;
-    if (!empty($s['fecha_hora_solved_str']) && !empty($s['fecha_hora_solved_end'])) {
-        $inicio = strtotime($s['fecha_hora_solved_str']);
-        $fin = strtotime($s['fecha_hora_solved_end']);
-        if ($fin > $inicio) {
-            $totalMinutos = (int) round(($fin - $inicio) / 60);
-        }
-    }
-
-    $valorPorHora = (float)$s['valor_por_hora'];
-    $montoTotal = round(($totalMinutos / 60) * $valorPorHora, 2);
-
-    $sqlUpd = "UPDATE tbl_soportes SET total_minutos = ?, monto_total = ? WHERE id = ?";
-    $paramsUpd = [$totalMinutos, $montoTotal, $soporteId];
-    $upd = $pdo->prepare($sqlUpd);
-    $upd->execute($paramsUpd);
-    registrarAuditoria($pdo, 'UPD', 'tbl_soportes', $soporteId, interpolarSql($pdo, $sqlUpd, $paramsUpd), $motivo);
-
-    return ['total_minutos' => $totalMinutos, 'monto_total' => $montoTotal];
 }
 
 /**
