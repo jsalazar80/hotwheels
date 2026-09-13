@@ -56,7 +56,7 @@ include __DIR__ . '/includes/header.php';
                     <div class="card-panel text-center py-4 h-100 mb-0 cursor-pointer" style="transition: box-shadow .15s;"
                          onmouseover="this.style.boxShadow='0 4px 14px rgba(23,65,122,0.18)'"
                          onmouseout="this.style.boxShadow=''">
-                        <i class="bi <?= limpiar($op['icono'] ?: 'bi-dot') ?>" style="font-size:2.2rem; color: var(--azul-principal);"></i>
+                        <i class="bi <?= limpiar($op['icono'] ?: 'bi-dot') ?>" style="font-size:2.2rem; color: var(--rojo-principal);"></i>
                         <div class="mt-2 fw-semibold text-tsp"><?= limpiar($op['nombre']) ?></div>
                     </div>
                 </a>
