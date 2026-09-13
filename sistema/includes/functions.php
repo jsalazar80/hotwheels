@@ -62,6 +62,98 @@ function resolverRutaArchivoSoporte($idSoporte, $nombreArchivo) {
     return 'files/soportes/' . $nombreArchivo;
 }
 
+/**
+ * Valida y convierte una imagen subida (jpg/jpeg/png) a JPG, guardando el archivo final
+ * y una miniatura JPG a partir de las rutas indicadas. La transparencia de los PNG se
+ * aplana sobre fondo blanco, ya que JPG no soporta canal alfa.
+ * Devuelve true si tanto la imagen como la miniatura se guardaron correctamente.
+ */
+function guardarImagenJpgConMiniatura($rutaTmpSubida, $extensionOriginal, $rutaDestino, $rutaDestinoMiniatura, $ladoMaxMiniatura = 200) {
+    $info = @getimagesize($rutaTmpSubida);
+    if (!$info) return false;
+
+    $ext = strtolower($extensionOriginal);
+    if ($ext === 'png' && $info[2] === IMAGETYPE_PNG) {
+        $origen = @imagecreatefrompng($rutaTmpSubida);
+    } elseif (in_array($ext, ['jpg', 'jpeg'], true) && $info[2] === IMAGETYPE_JPEG) {
+        $origen = @imagecreatefromjpeg($rutaTmpSubida);
+    } else {
+        return false;
+    }
+    if (!$origen) return false;
+
+    $ancho = imagesx($origen);
+    $alto = imagesy($origen);
+
+    $lienzo = imagecreatetruecolor($ancho, $alto);
+    imagefill($lienzo, 0, 0, imagecolorallocate($lienzo, 255, 255, 255));
+    imagecopy($lienzo, $origen, 0, 0, 0, 0, $ancho, $alto);
+    imagedestroy($origen);
+
+    $guardadoOk = imagejpeg($lienzo, $rutaDestino, 90);
+
+    $escala = min(1, $ladoMaxMiniatura / max($ancho, $alto));
+    $anchoMini = max(1, (int) round($ancho * $escala));
+    $altoMini = max(1, (int) round($alto * $escala));
+    $miniatura = imagecreatetruecolor($anchoMini, $altoMini);
+    imagecopyresampled($miniatura, $lienzo, 0, 0, 0, 0, $anchoMini, $altoMini, $ancho, $alto);
+    $miniaturaOk = imagejpeg($miniatura, $rutaDestinoMiniatura, 85);
+
+    imagedestroy($lienzo);
+    imagedestroy($miniatura);
+
+    return $guardadoOk && $miniaturaOk;
+}
+
+/**
+ * Sube y guarda las fotos adjuntas de un auto (jpg/jpeg/png, siempre convertidas a jpg),
+ * en files/carros/folder_{idCarro}/ con nombre foto_{n}_{idCarro}.jpg (numeración
+ * secuencial según los archivos ya existentes en esa carpeta) y su miniatura JPG
+ * s_foto_{n}_{idCarro}.jpg en la subcarpeta thumbnail/. Comparte esta lógica el alta y
+ * la edición de tbl_hotwheels_carros (cars/carro_detalle.php).
+ */
+function procesarArchivosAdjuntosCarro($pdo, $idCarro, $userId) {
+    if (empty($_FILES['archivos']['name'][0])) return;
+
+    $extensionesPermitidas = ['png', 'jpg', 'jpeg'];
+    $carpetaCarro = __DIR__ . '/../files/carros/folder_' . $idCarro;
+    $carpetaMiniaturas = $carpetaCarro . '/thumbnail';
+    if (!is_dir($carpetaMiniaturas)) mkdir($carpetaMiniaturas, 0755, true);
+
+    $siguienteFoto = count(glob($carpetaCarro . '/foto_*.jpg')) + 1;
+
+    foreach ($_FILES['archivos']['name'] as $i => $nombreOriginal) {
+        if ($_FILES['archivos']['error'][$i] !== UPLOAD_ERR_OK) continue;
+        $ext = strtolower(pathinfo($nombreOriginal, PATHINFO_EXTENSION));
+        if (!in_array($ext, $extensionesPermitidas, true)) continue;
+
+        $nombreGuardado = 'foto_' . $siguienteFoto . '_' . $idCarro . '.jpg';
+        $rutaDestino = $carpetaCarro . '/' . $nombreGuardado;
+        $rutaMiniatura = $carpetaMiniaturas . '/s_' . $nombreGuardado;
+        $guardadoOk = guardarImagenJpgConMiniatura($_FILES['archivos']['tmp_name'][$i], $ext, $rutaDestino, $rutaMiniatura);
+
+        if ($guardadoOk) {
+            $siguienteFoto++;
+            $sqlArch = "INSERT INTO tbl_hotwheels_carros_archivos (id_tbl_hotwheels_carros, archivo, nombre_original, user_ing, fecha_hora_ing) VALUES (?,?,?,?,NOW())";
+            $paramsArch = [$idCarro, $nombreGuardado, $nombreOriginal, $userId];
+            $insArch = $pdo->prepare($sqlArch);
+            $insArch->execute($paramsArch);
+            registrarAuditoria($pdo, 'INS', 'tbl_hotwheels_carros_archivos', (int)$pdo->lastInsertId(), interpolarSql($pdo, $sqlArch, $paramsArch), 'Adjunto de foto al auto');
+        }
+    }
+}
+
+/** Ruta (relativa al webroot sistema/) de la foto real de un auto. */
+function resolverRutaArchivoCarro($idCarro, $nombreArchivo) {
+    return 'files/carros/folder_' . $idCarro . '/' . $nombreArchivo;
+}
+
+/** Ruta de la miniatura de una foto de un auto, o null si aún no existe. */
+function resolverRutaMiniaturaCarro($idCarro, $nombreArchivo) {
+    $rel = 'files/carros/folder_' . $idCarro . '/thumbnail/s_' . $nombreArchivo;
+    return file_exists(__DIR__ . '/../' . $rel) ? $rel : null;
+}
+
 function redirigirConMensaje($url, $tipo, $mensaje) {
     $separador = str_contains($url, '?') ? '&' : '?';
     header("Location: $url{$separador}msg_tipo=$tipo&msg=" . urlencode($mensaje));
