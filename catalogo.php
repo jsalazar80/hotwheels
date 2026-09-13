@@ -122,6 +122,20 @@ img { max-width: 100%; }
     pointer-events: none;
 }
 .hero-logo { width: 84px; height: 84px; border-radius: 50%; box-shadow: 0 0 0 3px var(--ambar-claro); margin-bottom: 14px; }
+.hero-login {
+    position: absolute;
+    top: 18px; right: 20px;
+    display: inline-flex; align-items: center; gap: 6px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.8rem; font-weight: 600;
+    padding: 7px 14px;
+    border: 1px solid rgba(217,164,65,0.5);
+    border-radius: 999px;
+    transition: background .15s, border-color .15s;
+    z-index: 1;
+}
+.hero-login:hover { background: rgba(217,164,65,0.15); border-color: var(--ambar); color: #fff; }
 .hero h1 {
     font-family: 'Playfair Display', Georgia, serif;
     font-size: clamp(1.9rem, 4vw, 2.8rem);
@@ -237,6 +251,7 @@ footer a { color: #a39c8c; }
 
 @media (max-width: 480px) {
     .hero { padding: 42px 16px 30px; }
+    .hero-login { position: static; display: inline-flex; margin-bottom: 14px; }
     .hero-stats { gap: 22px; }
     .grid-autos { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
 }
@@ -245,6 +260,7 @@ footer a { color: #a39c8c; }
 <body>
 
 <div class="hero">
+    <a href="sistema/login.php" class="hero-login"><i class="bi bi-box-arrow-in-right"></i> Login</a>
     <img src="sistema/assets/img/logo.svg" alt="Hotwheels" class="hero-logo">
     <h1>Catálogo de la Colección</h1>
     <p class="tagline">Autos de colección · organizados por marca</p>
