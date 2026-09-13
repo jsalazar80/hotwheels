@@ -1,3 +1,4 @@
 sistema/vendor/
 sistema/files/
 sistema/database_backup_*.sql
+sistema/_php_*.log
