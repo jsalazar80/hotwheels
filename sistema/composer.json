@@ -1,0 +1,11 @@
+{
+    "name": "techsupport/techsupport",
+    "description": "Sistema de Registro y Control de Soporte Técnico",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "tecnickcom/tcpdf": "^6.11",
+        "phpmailer/phpmailer": "^6.9",
+        "phpoffice/phpspreadsheet": "^3.5"
+    }
+}

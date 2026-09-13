@@ -1,0 +1,21 @@
+{
+    "name": "TechSupport - Registro y Control de Soporte Técnico",
+    "short_name": "TechSupport",
+    "start_url": "index.php",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#17417a",
+    "icons": [
+        {
+            "src": "assets/img/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "assets/img/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

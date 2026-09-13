@@ -1,0 +1,6 @@
+DirectoryIndex login.php index.php
+Options -Indexes
+
+<IfModule mod_php.c>
+    php_flag display_errors off
+</IfModule>
