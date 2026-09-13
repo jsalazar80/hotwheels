@@ -1,7 +1,7 @@
 <?php
 /**
  * INSTALADOR INICIAL
- * Ejecute este archivo UNA SOLA VEZ después de importar database.sql
+ * Ejecute este archivo UNA SOLA VEZ después de importar migrations/database.sql
  * para generar correctamente la contraseña del usuario administrador.
  * Por seguridad, elimine este archivo después de usarlo.
  */
