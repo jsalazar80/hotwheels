@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
     $nombre = trim($_POST['nombre'] ?? '');
 
     if ($nombre === '') {
-        redirigirConMensaje('settings/series.php', 'error', 'El nombre es obligatorio.');
+        redirigirConMensaje('series.php', 'error', 'El nombre es obligatorio.');
     }
 
     if ($id > 0) {
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt = $pdo->prepare($sqlUpd);
         $stmt->execute($paramsUpd);
         registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_series', $id, interpolarSql($pdo, $sqlUpd, $paramsUpd), 'Actualización de serie');
-        redirigirConMensaje('settings/series.php', 'ok', 'Serie actualizada.');
+        redirigirConMensaje('series.php', 'ok', 'Serie actualizada.');
     } else {
         $sqlIns = "INSERT INTO tbl_hotwheels_series (nombre, user_ing, fecha_hora_ing) VALUES (?,?,NOW())";
         $paramsIns = [$nombre, $_SESSION['tsp_usuario_id']];
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt->execute($paramsIns);
         $nuevoId = (int)$pdo->lastInsertId();
         registrarAuditoria($pdo, 'INS', 'tbl_hotwheels_series', $nuevoId, interpolarSql($pdo, $sqlIns, $paramsIns), 'Registro de nueva serie');
-        redirigirConMensaje('settings/series.php', 'ok', 'Serie registrada.');
+        redirigirConMensaje('series.php', 'ok', 'Serie registrada.');
     }
 }
 
@@ -36,7 +36,7 @@ if (isset($_GET['toggle'])) {
     $stmt = $pdo->prepare($sqlToggle);
     $stmt->execute($paramsToggle);
     registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_series', $id, interpolarSql($pdo, $sqlToggle, $paramsToggle), 'Cambio de estado (activo/inactivo) de la serie');
-    redirigirConMensaje('settings/series.php', 'ok', 'Estado actualizado.');
+    redirigirConMensaje('series.php', 'ok', 'Estado actualizado.');
 }
 
 $series = $pdo->query("SELECT * FROM tbl_hotwheels_series ORDER BY nombre ASC")->fetchAll();

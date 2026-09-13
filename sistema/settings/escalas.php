@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
     $nombre = trim($_POST['nombre'] ?? '');
 
     if ($nombre === '') {
-        redirigirConMensaje('settings/escalas.php', 'error', 'El nombre es obligatorio.');
+        redirigirConMensaje('escalas.php', 'error', 'El nombre es obligatorio.');
     }
 
     if ($id > 0) {
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt = $pdo->prepare($sqlUpd);
         $stmt->execute($paramsUpd);
         registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_escalas', $id, interpolarSql($pdo, $sqlUpd, $paramsUpd), 'Actualización de escala');
-        redirigirConMensaje('settings/escalas.php', 'ok', 'Escala actualizada.');
+        redirigirConMensaje('escalas.php', 'ok', 'Escala actualizada.');
     } else {
         $sqlIns = "INSERT INTO tbl_hotwheels_escalas (nombre, user_ing, fecha_hora_ing) VALUES (?,?,NOW())";
         $paramsIns = [$nombre, $_SESSION['tsp_usuario_id']];
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt->execute($paramsIns);
         $nuevoId = (int)$pdo->lastInsertId();
         registrarAuditoria($pdo, 'INS', 'tbl_hotwheels_escalas', $nuevoId, interpolarSql($pdo, $sqlIns, $paramsIns), 'Registro de nueva escala');
-        redirigirConMensaje('settings/escalas.php', 'ok', 'Escala registrada.');
+        redirigirConMensaje('escalas.php', 'ok', 'Escala registrada.');
     }
 }
 
@@ -36,7 +36,7 @@ if (isset($_GET['toggle'])) {
     $stmt = $pdo->prepare($sqlToggle);
     $stmt->execute($paramsToggle);
     registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_escalas', $id, interpolarSql($pdo, $sqlToggle, $paramsToggle), 'Cambio de estado (activo/inactivo) de la escala');
-    redirigirConMensaje('settings/escalas.php', 'ok', 'Estado actualizado.');
+    redirigirConMensaje('escalas.php', 'ok', 'Estado actualizado.');
 }
 
 $escalas = $pdo->query("SELECT * FROM tbl_hotwheels_escalas ORDER BY nombre ASC")->fetchAll();

@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
     $hexcol = trim($_POST['hexcol'] ?? '');
 
     if ($nombre === '') {
-        redirigirConMensaje('settings/colores.php', 'error', 'El nombre es obligatorio.');
+        redirigirConMensaje('colores.php', 'error', 'El nombre es obligatorio.');
     }
 
     if ($id > 0) {
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt = $pdo->prepare($sqlUpd);
         $stmt->execute($paramsUpd);
         registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_colores', $id, interpolarSql($pdo, $sqlUpd, $paramsUpd), 'Actualización de color');
-        redirigirConMensaje('settings/colores.php', 'ok', 'Color actualizado.');
+        redirigirConMensaje('colores.php', 'ok', 'Color actualizado.');
     } else {
         $sqlIns = "INSERT INTO tbl_hotwheels_colores (nombre, hexcol, user_ing, fecha_hora_ing) VALUES (?,?,?,NOW())";
         $paramsIns = [$nombre, $hexcol, $_SESSION['tsp_usuario_id']];
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt->execute($paramsIns);
         $nuevoId = (int)$pdo->lastInsertId();
         registrarAuditoria($pdo, 'INS', 'tbl_hotwheels_colores', $nuevoId, interpolarSql($pdo, $sqlIns, $paramsIns), 'Registro de nuevo color');
-        redirigirConMensaje('settings/colores.php', 'ok', 'Color registrado.');
+        redirigirConMensaje('colores.php', 'ok', 'Color registrado.');
     }
 }
 
@@ -37,7 +37,7 @@ if (isset($_GET['toggle'])) {
     $stmt = $pdo->prepare($sqlToggle);
     $stmt->execute($paramsToggle);
     registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_colores', $id, interpolarSql($pdo, $sqlToggle, $paramsToggle), 'Cambio de estado (activo/inactivo) del color');
-    redirigirConMensaje('settings/colores.php', 'ok', 'Estado actualizado.');
+    redirigirConMensaje('colores.php', 'ok', 'Estado actualizado.');
 }
 
 $colores = $pdo->query("SELECT * FROM tbl_hotwheels_colores ORDER BY nombre ASC")->fetchAll();

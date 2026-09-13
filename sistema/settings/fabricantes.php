@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
     $nombre = trim($_POST['nombre'] ?? '');
 
     if ($nombre === '') {
-        redirigirConMensaje('settings/fabricantes.php', 'error', 'El nombre es obligatorio.');
+        redirigirConMensaje('fabricantes.php', 'error', 'El nombre es obligatorio.');
     }
 
     if ($id > 0) {
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt = $pdo->prepare($sqlUpd);
         $stmt->execute($paramsUpd);
         registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_fabricantes', $id, interpolarSql($pdo, $sqlUpd, $paramsUpd), 'Actualización de fabricante');
-        redirigirConMensaje('settings/fabricantes.php', 'ok', 'Fabricante actualizado.');
+        redirigirConMensaje('fabricantes.php', 'ok', 'Fabricante actualizado.');
     } else {
         $sqlIns = "INSERT INTO tbl_hotwheels_fabricantes (nombre, user_ing, fecha_hora_ing) VALUES (?,?,NOW())";
         $paramsIns = [$nombre, $_SESSION['tsp_usuario_id']];
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt->execute($paramsIns);
         $nuevoId = (int)$pdo->lastInsertId();
         registrarAuditoria($pdo, 'INS', 'tbl_hotwheels_fabricantes', $nuevoId, interpolarSql($pdo, $sqlIns, $paramsIns), 'Registro de nuevo fabricante');
-        redirigirConMensaje('settings/fabricantes.php', 'ok', 'Fabricante registrado.');
+        redirigirConMensaje('fabricantes.php', 'ok', 'Fabricante registrado.');
     }
 }
 
@@ -36,7 +36,7 @@ if (isset($_GET['toggle'])) {
     $stmt = $pdo->prepare($sqlToggle);
     $stmt->execute($paramsToggle);
     registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_fabricantes', $id, interpolarSql($pdo, $sqlToggle, $paramsToggle), 'Cambio de estado (activo/inactivo) del fabricante');
-    redirigirConMensaje('settings/fabricantes.php', 'ok', 'Estado actualizado.');
+    redirigirConMensaje('fabricantes.php', 'ok', 'Estado actualizado.');
 }
 
 $fabricantes = $pdo->query("SELECT * FROM tbl_hotwheels_fabricantes ORDER BY nombre ASC")->fetchAll();
