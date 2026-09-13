@@ -5,6 +5,20 @@ requerirPermiso(34);
 
 $id = (int)($_GET['id'] ?? 0);
 
+// ---- Verificación en vivo de modelo duplicado (llamada por fetch() desde el formulario) ----
+if (isset($_GET['verificar_modelo'])) {
+    header('Content-Type: application/json');
+    $modeloConsulta = trim($_GET['verificar_modelo']);
+    $existe = false;
+    if ($modeloConsulta !== '') {
+        $stmtExiste = $pdo->prepare("SELECT id FROM tbl_hotwheels_carros WHERE LOWER(modelo) = LOWER(?) AND id != ?");
+        $stmtExiste->execute([$modeloConsulta, $id]);
+        $existe = (bool)$stmtExiste->fetch();
+    }
+    echo json_encode(['existe' => $existe]);
+    exit;
+}
+
 // ---- Guardar (crear o actualizar) ----
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guardar') {
     $modelo = trim($_POST['modelo'] ?? '');
@@ -111,7 +125,8 @@ include __DIR__ . '/../includes/header.php';
                     <input type="hidden" name="internalcode" value="<?= limpiar($carro['internalcode']) ?>">
                     <div class="col-md-12">
                         <label class="form-label">Modelo</label>
-                        <input type="text" name="modelo" class="form-control" value="<?= limpiar($carro['modelo']) ?>" required>
+                        <input type="text" name="modelo" id="inputModelo" class="form-control" value="<?= limpiar($carro['modelo']) ?>" required autocomplete="off">
+                        <div id="avisoModeloExistente" class="form-text text-danger d-none"><i class="bi bi-exclamation-triangle-fill"></i> Ya existe un auto con este modelo.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Fabricante</label>
@@ -226,6 +241,26 @@ include __DIR__ . '/../includes/header.php';
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     inicializarDropzone('dropzoneArchivos', 'inputArchivos', 'listaArchivosSeleccionados', ['png', 'jpg', 'jpeg']);
+
+    const rutaVerificar = <?= json_encode(rutaScriptActual()) ?>;
+    const idActual = <?= (int)$id ?>;
+    const inputModelo = document.getElementById('inputModelo');
+    const avisoModelo = document.getElementById('avisoModeloExistente');
+    let temporizadorModelo;
+
+    inputModelo.addEventListener('input', function () {
+        clearTimeout(temporizadorModelo);
+        const valor = this.value.trim();
+        avisoModelo.classList.add('d-none');
+        if (valor.length < 2) return;
+
+        temporizadorModelo = setTimeout(function () {
+            fetch(rutaVerificar + '?verificar_modelo=' + encodeURIComponent(valor) + '&id=' + idActual)
+                .then(function (r) { return r.json(); })
+                .then(function (data) { avisoModelo.classList.toggle('d-none', !data.existe); })
+                .catch(function () {});
+        }, 400);
+    });
 });
 </script>
 

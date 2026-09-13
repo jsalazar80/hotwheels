@@ -42,6 +42,18 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $carros = $stmt->fetchAll();
 
+// ---- Fotos de cada auto de esta página, para la galería modal (una consulta para todas) ----
+$fotosPorCarro = [];
+if ($carros) {
+    $idsCarros = array_column($carros, 'id');
+    $marcadores = implode(',', array_fill(0, count($idsCarros), '?'));
+    $stmtFotos = $pdo->prepare("SELECT id_tbl_hotwheels_carros, archivo FROM tbl_hotwheels_carros_archivos WHERE id_tbl_hotwheels_carros IN ($marcadores) AND state = 1 ORDER BY id ASC");
+    $stmtFotos->execute($idsCarros);
+    foreach ($stmtFotos->fetchAll() as $foto) {
+        $fotosPorCarro[$foto['id_tbl_hotwheels_carros']][] = $foto['archivo'];
+    }
+}
+
 $tituloPagina = 'Carros';
 $paginaActiva = 'carros';
 include __DIR__ . '/../includes/header.php';
@@ -64,11 +76,20 @@ include __DIR__ . '/../includes/header.php';
             <thead><tr><th style="width:50px;"></th><th>Modelo</th><th>Marca</th><th>Serie</th><th>Tipo</th><th>Color</th><th>Escala</th><th>Cant.</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody>
             <?php foreach ($carros as $c): ?>
-                <?php $rutaMiniatura = $c['portada'] ? resolverRutaMiniaturaCarro($c['id'], $c['portada']) : null; ?>
+                <?php
+                    $rutaMiniatura = $c['portada'] ? resolverRutaMiniaturaCarro($c['id'], $c['portada']) : null;
+                    $fotosCarro = $fotosPorCarro[$c['id']] ?? [];
+                ?>
                 <tr>
                     <td>
-                        <?php if ($rutaMiniatura): ?>
-                            <img src="<?= limpiar($rutaMiniatura) ?>" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">
+                        <?php if ($fotosCarro): ?>
+                            <?php
+                                $galeria = array_map(fn($archivo) => [
+                                    'archivo' => resolverRutaArchivoCarro($c['id'], $archivo),
+                                    'miniatura' => resolverRutaMiniaturaCarro($c['id'], $archivo) ?: resolverRutaArchivoCarro($c['id'], $archivo),
+                                ], $fotosCarro);
+                            ?>
+                            <img src="<?= limpiar($rutaMiniatura ?: resolverRutaArchivoCarro($c['id'], $fotosCarro[0])) ?>" class="cursor-pointer" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onclick='abrirGaleria(<?= json_encode($c['modelo'], JSON_HEX_APOS|JSON_HEX_QUOT) ?>, <?= json_encode($galeria, JSON_HEX_APOS|JSON_HEX_QUOT) ?>)'>
                         <?php else: ?>
                             <i class="bi bi-image text-muted" style="font-size:1.5rem;"></i>
                         <?php endif; ?>
@@ -93,5 +114,33 @@ include __DIR__ . '/../includes/header.php';
     </div>
     <?php renderizarPaginador($totalCarros, $pagina, $porPagina); ?>
 </div>
+
+<div class="modal fade" id="modalGaleria" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalGaleriaTitulo"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-2" id="modalGaleriaCuerpo"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirGaleria(modelo, fotos) {
+    document.getElementById('modalGaleriaTitulo').textContent = modelo;
+    const cuerpo = document.getElementById('modalGaleriaCuerpo');
+    cuerpo.innerHTML = fotos.map(function (f) {
+        return '<div class="col-6 col-md-4">'
+            + '<a href="' + f.archivo + '" target="_blank">'
+            + '<img src="' + f.miniatura + '" style="width:100%;max-height:160px;object-fit:cover;border-radius:6px;">'
+            + '</a></div>';
+    }).join('');
+    new bootstrap.Modal(document.getElementById('modalGaleria')).show();
+}
+</script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
