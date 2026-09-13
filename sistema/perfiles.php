@@ -44,7 +44,9 @@ if (isset($_GET['toggle'])) {
     redirigirConMensaje('perfiles.php', 'ok', 'Estado actualizado.');
 }
 
-$perfiles = $pdo->query("SELECT * FROM tbl_profiles ORDER BY nombre ASC")->fetchAll();
+[$pagina, $porPagina, $offset] = obtenerPaginacion();
+$totalPerfiles = (int)$pdo->query("SELECT COUNT(*) t FROM tbl_profiles")->fetch()['t'];
+$perfiles = $pdo->query("SELECT * FROM tbl_profiles ORDER BY nombre ASC LIMIT $porPagina OFFSET $offset")->fetchAll();
 $todasLasOpciones = $pdo->query("SELECT * FROM tbl_menu_admin WHERE state = 1 ORDER BY orden ASC")->fetchAll();
 $opcionesPadre = array_values(array_filter($todasLasOpciones, fn($o) => (int)$o['is_submenu'] === 0));
 // Nombrada distinto de $opcionesMenu a propósito: includes/sidebar.php (incluido más abajo vía
@@ -126,6 +128,7 @@ include __DIR__ . '/includes/header.php';
                     </tbody>
                 </table>
             </div>
+            <?php renderizarPaginador($totalPerfiles, $pagina, $porPagina); ?>
         </div>
     </div>
 </div>

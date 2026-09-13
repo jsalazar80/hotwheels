@@ -39,7 +39,9 @@ if (isset($_GET['toggle'])) {
     redirigirConMensaje('escalas.php', 'ok', 'Estado actualizado.');
 }
 
-$escalas = $pdo->query("SELECT * FROM tbl_hotwheels_escalas ORDER BY nombre ASC")->fetchAll();
+[$pagina, $porPagina, $offset] = obtenerPaginacion();
+$totalEscalas = (int)$pdo->query("SELECT COUNT(*) t FROM tbl_hotwheels_escalas")->fetch()['t'];
+$escalas = $pdo->query("SELECT * FROM tbl_hotwheels_escalas ORDER BY nombre ASC LIMIT $porPagina OFFSET $offset")->fetchAll();
 
 $tituloPagina = 'Escalas';
 $paginaActiva = 'escalas';
@@ -84,6 +86,7 @@ include __DIR__ . '/../includes/header.php';
                     </tbody>
                 </table>
             </div>
+            <?php renderizarPaginador($totalEscalas, $pagina, $porPagina); ?>
         </div>
     </div>
 </div>

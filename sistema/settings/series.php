@@ -39,7 +39,9 @@ if (isset($_GET['toggle'])) {
     redirigirConMensaje('series.php', 'ok', 'Estado actualizado.');
 }
 
-$series = $pdo->query("SELECT * FROM tbl_hotwheels_series ORDER BY nombre ASC")->fetchAll();
+[$pagina, $porPagina, $offset] = obtenerPaginacion();
+$totalSeries = (int)$pdo->query("SELECT COUNT(*) t FROM tbl_hotwheels_series")->fetch()['t'];
+$series = $pdo->query("SELECT * FROM tbl_hotwheels_series ORDER BY nombre ASC LIMIT $porPagina OFFSET $offset")->fetchAll();
 
 $tituloPagina = 'Series';
 $paginaActiva = 'series';
@@ -84,6 +86,7 @@ include __DIR__ . '/../includes/header.php';
                     </tbody>
                 </table>
             </div>
+            <?php renderizarPaginador($totalSeries, $pagina, $porPagina); ?>
         </div>
     </div>
 </div>

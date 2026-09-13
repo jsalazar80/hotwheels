@@ -40,7 +40,9 @@ if (isset($_GET['toggle'])) {
     redirigirConMensaje('colores.php', 'ok', 'Estado actualizado.');
 }
 
-$colores = $pdo->query("SELECT * FROM tbl_hotwheels_colores ORDER BY nombre ASC")->fetchAll();
+[$pagina, $porPagina, $offset] = obtenerPaginacion();
+$totalColores = (int)$pdo->query("SELECT COUNT(*) t FROM tbl_hotwheels_colores")->fetch()['t'];
+$colores = $pdo->query("SELECT * FROM tbl_hotwheels_colores ORDER BY nombre ASC LIMIT $porPagina OFFSET $offset")->fetchAll();
 
 $tituloPagina = 'Colores';
 $paginaActiva = 'colores';
@@ -90,6 +92,7 @@ include __DIR__ . '/../includes/header.php';
                     </tbody>
                 </table>
             </div>
+            <?php renderizarPaginador($totalColores, $pagina, $porPagina); ?>
         </div>
     </div>
 </div>

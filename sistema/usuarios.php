@@ -60,8 +60,10 @@ if (isset($_GET['toggle'])) {
     redirigirConMensaje('usuarios.php', 'ok', 'Estado actualizado.');
 }
 
+[$pagina, $porPagina, $offset] = obtenerPaginacion();
+$totalUsuarios = (int)$pdo->query("SELECT COUNT(*) t FROM tbl_admin_user")->fetch()['t'];
 $usuarios = $pdo->query("SELECT u.*, p.nombre AS perfil_nombre FROM tbl_admin_user u
-    JOIN tbl_profiles p ON p.id = u.id_tbl_profiles ORDER BY u.nombre ASC")->fetchAll();
+    JOIN tbl_profiles p ON p.id = u.id_tbl_profiles ORDER BY u.nombre ASC LIMIT $porPagina OFFSET $offset")->fetchAll();
 $perfiles = $pdo->query("SELECT * FROM tbl_profiles WHERE state = 1 ORDER BY nombre ASC")->fetchAll();
 
 $tituloPagina = 'Usuarios';
@@ -126,6 +128,7 @@ include __DIR__ . '/includes/header.php';
                     </tbody>
                 </table>
             </div>
+            <?php renderizarPaginador($totalUsuarios, $pagina, $porPagina); ?>
         </div>
     </div>
 </div>

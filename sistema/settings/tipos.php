@@ -39,7 +39,9 @@ if (isset($_GET['toggle'])) {
     redirigirConMensaje('tipos.php', 'ok', 'Estado actualizado.');
 }
 
-$tipos = $pdo->query("SELECT * FROM tbl_hotwheels_tipos ORDER BY nombre ASC")->fetchAll();
+[$pagina, $porPagina, $offset] = obtenerPaginacion();
+$totalTipos = (int)$pdo->query("SELECT COUNT(*) t FROM tbl_hotwheels_tipos")->fetch()['t'];
+$tipos = $pdo->query("SELECT * FROM tbl_hotwheels_tipos ORDER BY nombre ASC LIMIT $porPagina OFFSET $offset")->fetchAll();
 
 $tituloPagina = 'Tipos';
 $paginaActiva = 'tipos';
@@ -84,6 +86,7 @@ include __DIR__ . '/../includes/header.php';
                     </tbody>
                 </table>
             </div>
+            <?php renderizarPaginador($totalTipos, $pagina, $porPagina); ?>
         </div>
     </div>
 </div>

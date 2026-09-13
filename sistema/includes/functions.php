@@ -330,6 +330,98 @@ function requerirPermiso($idMenu) {
     }
 }
 
+/** Tamaños de página permitidos en el combo "Registros por página" de las listas. */
+const OPCIONES_POR_PAGINA = [25, 50, 100, 200];
+
+/**
+ * Lee de $_GET los parámetros de paginación ("pagina" y "por_pagina", limitado a
+ * OPCIONES_POR_PAGINA, 25 por defecto) y devuelve [pagina, porPagina, offset].
+ * Usar el resultado como enteros literales en "LIMIT $porPagina OFFSET $offset" es
+ * seguro (valores ya validados contra una lista fija) y evita el problema conocido
+ * de PDO con MySQL al pasar LIMIT/OFFSET como parámetros "?" con prepares nativos
+ * (PDO::ATTR_EMULATE_PREPARES está en false en config/db.php).
+ */
+function obtenerPaginacion() {
+    $porPagina = (int)($_GET['por_pagina'] ?? 25);
+    if (!in_array($porPagina, OPCIONES_POR_PAGINA, true)) $porPagina = 25;
+    $pagina = max(1, (int)($_GET['pagina'] ?? 1));
+    $offset = ($pagina - 1) * $porPagina;
+    return [$pagina, $porPagina, $offset];
+}
+
+/**
+ * Calcula qué números de página mostrar alrededor de la página actual, con "..."
+ * donde se salten páginas intermedias (ventana de $delta páginas a cada lado, más
+ * siempre la primera y la última).
+ */
+function paginasVentana($actual, $total, $delta = 1) {
+    $rango = [];
+    for ($i = max(1, $actual - $delta); $i <= min($total, $actual + $delta); $i++) $rango[] = $i;
+
+    $conBordes = [];
+    if ($rango[0] > 1) {
+        $conBordes[] = 1;
+        if ($rango[0] > 2) $conBordes[] = '...';
+    }
+    foreach ($rango as $r) $conBordes[] = $r;
+    if (end($rango) < $total) {
+        if (end($rango) < $total - 1) $conBordes[] = '...';
+        $conBordes[] = $total;
+    }
+    return $conBordes;
+}
+
+/**
+ * Imprime el paginador estándar de las listas: combo "registros por página"
+ * (OPCIONES_POR_PAGINA) + navegación de páginas, preservando en la URL todos los
+ * parámetros GET actuales (filtros de búsqueda, etc.) salvo "pagina"/"por_pagina".
+ */
+function renderizarPaginador($totalRegistros, $pagina, $porPagina) {
+    $totalPaginas = max(1, (int)ceil($totalRegistros / $porPagina));
+
+    $parametrosBase = $_GET;
+    unset($parametrosBase['pagina'], $parametrosBase['por_pagina']);
+    $construirUrl = function ($paginaDestino, $porPaginaDestino) use ($parametrosBase) {
+        return '?' . http_build_query(array_merge($parametrosBase, ['pagina' => $paginaDestino, 'por_pagina' => $porPaginaDestino]));
+    };
+
+    echo '<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">';
+
+    echo '<span class="small text-muted">';
+    if ($totalRegistros > 0) {
+        $desde = ($pagina - 1) * $porPagina + 1;
+        $hasta = min($totalRegistros, $pagina * $porPagina);
+        echo "Mostrando $desde-$hasta de $totalRegistros";
+    } else {
+        echo 'Sin registros';
+    }
+    echo '</span>';
+
+    echo '<div class="d-flex align-items-center gap-2">';
+    echo '<label class="small text-muted mb-0" for="selectPorPagina">Por página</label>';
+    echo '<select class="form-select form-select-sm" id="selectPorPagina" style="width:auto;" onchange="location.href=this.value">';
+    foreach (OPCIONES_POR_PAGINA as $opcion) {
+        echo '<option value="' . limpiar($construirUrl(1, $opcion)) . '" ' . ($porPagina === $opcion ? 'selected' : '') . '>' . $opcion . '</option>';
+    }
+    echo '</select>';
+
+    if ($totalPaginas > 1) {
+        echo '<ul class="pagination pagination-sm mb-0">';
+        echo '<li class="page-item' . ($pagina <= 1 ? ' disabled' : '') . '"><a class="page-link" href="' . limpiar($construirUrl(max(1, $pagina - 1), $porPagina)) . '">&laquo;</a></li>';
+        foreach (paginasVentana($pagina, $totalPaginas) as $p) {
+            if ($p === '...') {
+                echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+            } else {
+                echo '<li class="page-item' . ($p === $pagina ? ' active' : '') . '"><a class="page-link" href="' . limpiar($construirUrl($p, $porPagina)) . '">' . $p . '</a></li>';
+            }
+        }
+        echo '<li class="page-item' . ($pagina >= $totalPaginas ? ' disabled' : '') . '"><a class="page-link" href="' . limpiar($construirUrl(min($totalPaginas, $pagina + 1), $porPagina)) . '">&raquo;</a></li>';
+        echo '</ul>';
+    }
+    echo '</div>';
+    echo '</div>';
+}
+
 /**
  * Indica si una opción de menú tiene submenús (hijos) activos.
  */

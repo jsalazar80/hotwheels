@@ -8,13 +8,17 @@ $observacion = trim($_GET['observacion'] ?? '');
 $desde = $_GET['desde'] ?? date('Y-m-d', strtotime('-7 days'));
 $hasta = $_GET['hasta'] ?? date('Y-m-d');
 
-$sql = "SELECT * FROM tbl_login WHERE DATE(fecha_hora) BETWEEN ? AND ?";
+$whereSql = " WHERE DATE(fecha_hora) BETWEEN ? AND ?";
 $params = [$desde, $hasta];
-if ($usuario !== '') { $sql .= " AND usuario LIKE ?"; $params[] = "%$usuario%"; }
-if ($observacion !== '') { $sql .= " AND observacion = ?"; $params[] = $observacion; }
-$sql .= " ORDER BY id DESC LIMIT 500";
+if ($usuario !== '') { $whereSql .= " AND usuario LIKE ?"; $params[] = "%$usuario%"; }
+if ($observacion !== '') { $whereSql .= " AND observacion = ?"; $params[] = $observacion; }
 
-$stmt = $pdo->prepare($sql);
+$stmtTotal = $pdo->prepare("SELECT COUNT(*) t FROM tbl_login" . $whereSql);
+$stmtTotal->execute($params);
+$totalEventos = (int)$stmtTotal->fetch()['t'];
+
+[$pagina, $porPagina, $offset] = obtenerPaginacion();
+$stmt = $pdo->prepare("SELECT * FROM tbl_login" . $whereSql . " ORDER BY id DESC LIMIT $porPagina OFFSET $offset");
 $stmt->execute($params);
 $eventos = $stmt->fetchAll();
 
@@ -54,7 +58,7 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <div class="card-panel">
-    <h6 class="panel-title"><i class="bi bi-door-open"></i> Eventos de Acceso (<?= count($eventos) ?> - máx. 500)</h6>
+    <h6 class="panel-title"><i class="bi bi-door-open"></i> Eventos de Acceso (<?= $totalEventos ?>)</h6>
     <div class="table-responsive">
         <table class="table table-sm table-tsp align-middle">
             <thead><tr><th>Fecha/Hora</th><th>Usuario</th><th>Evento</th><th>IP</th><th>Navegador</th><th>Dispositivo</th></tr></thead>
@@ -73,6 +77,7 @@ include __DIR__ . '/includes/header.php';
             </tbody>
         </table>
     </div>
+    <?php renderizarPaginador($totalEventos, $pagina, $porPagina); ?>
 </div>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

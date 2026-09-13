@@ -14,23 +14,30 @@ if (isset($_GET['toggle'])) {
 }
 
 $busqueda = trim($_GET['buscar'] ?? '');
-$sql = "SELECT c.*, f.nombre fabricante_nombre, s.nombre serie_nombre, m.nombre marca_nombre,
-        e.nombre escala_nombre, t.nombre tipo_nombre, co.nombre color_nombre, co.hexcol color_hex,
-        (SELECT a.archivo FROM tbl_hotwheels_carros_archivos a WHERE a.id_tbl_hotwheels_carros = c.id AND a.state = 1 ORDER BY a.id ASC LIMIT 1) portada
-    FROM tbl_hotwheels_carros c
+$fromJoins = " FROM tbl_hotwheels_carros c
     LEFT JOIN tbl_hotwheels_fabricantes f ON f.id = c.id_tbl_hotwheels_fabricantes
     LEFT JOIN tbl_hotwheels_series s ON s.id = c.id_tbl_hotwheels_series
     LEFT JOIN tbl_hotwheels_marcas m ON m.id = c.id_tbl_hotwheels_marcas
     LEFT JOIN tbl_hotwheels_escalas e ON e.id = c.id_tbl_hotwheels_escalas
     LEFT JOIN tbl_hotwheels_tipos t ON t.id = c.id_tbl_hotwheels_tipos
     LEFT JOIN tbl_hotwheels_colores co ON co.id = c.id_tbl_hotwheels_colores";
+$whereSql = '';
 $params = [];
 if ($busqueda !== '') {
-    $sql .= " WHERE c.modelo LIKE ? OR c.internalcode LIKE ? OR m.nombre LIKE ?";
+    $whereSql = " WHERE c.modelo LIKE ? OR c.internalcode LIKE ? OR m.nombre LIKE ?";
     $comodin = '%' . $busqueda . '%';
     $params = [$comodin, $comodin, $comodin];
 }
-$sql .= " ORDER BY c.id DESC";
+
+$stmtTotal = $pdo->prepare("SELECT COUNT(*) t" . $fromJoins . $whereSql);
+$stmtTotal->execute($params);
+$totalCarros = (int)$stmtTotal->fetch()['t'];
+
+[$pagina, $porPagina, $offset] = obtenerPaginacion();
+$sql = "SELECT c.*, f.nombre fabricante_nombre, s.nombre serie_nombre, m.nombre marca_nombre,
+        e.nombre escala_nombre, t.nombre tipo_nombre, co.nombre color_nombre, co.hexcol color_hex,
+        (SELECT a.archivo FROM tbl_hotwheels_carros_archivos a WHERE a.id_tbl_hotwheels_carros = c.id AND a.state = 1 ORDER BY a.id ASC LIMIT 1) portada"
+    . $fromJoins . $whereSql . " ORDER BY c.id DESC LIMIT $porPagina OFFSET $offset";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $carros = $stmt->fetchAll();
@@ -43,7 +50,7 @@ include __DIR__ . '/../includes/header.php';
 <?php botonVolverMenu(); ?>
 <div class="card-panel">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-        <h6 class="panel-title mb-0 border-0 pb-0"><i class="bi bi-car-front-fill"></i> Carros (<?= count($carros) ?>)</h6>
+        <h6 class="panel-title mb-0 border-0 pb-0"><i class="bi bi-car-front-fill"></i> Carros (<?= $totalCarros ?>)</h6>
         <div class="d-flex gap-2">
             <form method="get" class="d-flex gap-2">
                 <input type="text" name="buscar" class="form-control form-control-sm" placeholder="Buscar por modelo, código o marca..." value="<?= limpiar($busqueda) ?>" style="width:260px;">
@@ -84,6 +91,7 @@ include __DIR__ . '/../includes/header.php';
             </tbody>
         </table>
     </div>
+    <?php renderizarPaginador($totalCarros, $pagina, $porPagina); ?>
 </div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -39,7 +39,9 @@ if (isset($_GET['toggle'])) {
     redirigirConMensaje('fabricantes.php', 'ok', 'Estado actualizado.');
 }
 
-$fabricantes = $pdo->query("SELECT * FROM tbl_hotwheels_fabricantes ORDER BY nombre ASC")->fetchAll();
+[$pagina, $porPagina, $offset] = obtenerPaginacion();
+$totalFabricantes = (int)$pdo->query("SELECT COUNT(*) t FROM tbl_hotwheels_fabricantes")->fetch()['t'];
+$fabricantes = $pdo->query("SELECT * FROM tbl_hotwheels_fabricantes ORDER BY nombre ASC LIMIT $porPagina OFFSET $offset")->fetchAll();
 
 $tituloPagina = 'Fabricantes';
 $paginaActiva = 'fabricantes';
@@ -84,6 +86,7 @@ include __DIR__ . '/../includes/header.php';
                     </tbody>
                 </table>
             </div>
+            <?php renderizarPaginador($totalFabricantes, $pagina, $porPagina); ?>
         </div>
     </div>
 </div>

@@ -8,13 +8,17 @@ $accion = trim($_GET['accion'] ?? '');
 $desde = $_GET['desde'] ?? date('Y-m-d', strtotime('-7 days'));
 $hasta = $_GET['hasta'] ?? date('Y-m-d');
 
-$sql = "SELECT * FROM tbl_general_auditory WHERE DATE(fecha_hora) BETWEEN ? AND ?";
+$whereSql = " WHERE DATE(fecha_hora) BETWEEN ? AND ?";
 $params = [$desde, $hasta];
-if ($tabla !== '') { $sql .= " AND tabla = ?"; $params[] = $tabla; }
-if ($accion !== '') { $sql .= " AND accion = ?"; $params[] = $accion; }
-$sql .= " ORDER BY id DESC LIMIT 500";
+if ($tabla !== '') { $whereSql .= " AND tabla = ?"; $params[] = $tabla; }
+if ($accion !== '') { $whereSql .= " AND accion = ?"; $params[] = $accion; }
 
-$stmt = $pdo->prepare($sql);
+$stmtTotal = $pdo->prepare("SELECT COUNT(*) t FROM tbl_general_auditory" . $whereSql);
+$stmtTotal->execute($params);
+$totalRegistros = (int)$stmtTotal->fetch()['t'];
+
+[$pagina, $porPagina, $offset] = obtenerPaginacion();
+$stmt = $pdo->prepare("SELECT * FROM tbl_general_auditory" . $whereSql . " ORDER BY id DESC LIMIT $porPagina OFFSET $offset");
 $stmt->execute($params);
 $registros = $stmt->fetchAll();
 
@@ -63,7 +67,7 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <div class="card-panel">
-    <h6 class="panel-title"><i class="bi bi-clock-history"></i> Registros de Auditoría (<?= count($registros) ?> - máx. 500)</h6>
+    <h6 class="panel-title"><i class="bi bi-clock-history"></i> Registros de Auditoría (<?= $totalRegistros ?>)</h6>
     <div class="table-responsive">
         <table class="table table-sm table-tsp align-middle">
             <thead><tr><th>Fecha/Hora</th><th>Usuario</th><th>Acción</th><th>Tabla</th><th>ID Registro</th><th>Observaciones</th><th>Consulta Ejecutada</th></tr></thead>
@@ -86,6 +90,7 @@ include __DIR__ . '/includes/header.php';
             </tbody>
         </table>
     </div>
+    <?php renderizarPaginador($totalRegistros, $pagina, $porPagina); ?>
 </div>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

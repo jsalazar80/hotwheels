@@ -39,7 +39,9 @@ if (isset($_GET['toggle'])) {
     redirigirConMensaje('marcas.php', 'ok', 'Estado actualizado.');
 }
 
-$marcas = $pdo->query("SELECT * FROM tbl_hotwheels_marcas ORDER BY nombre ASC")->fetchAll();
+[$pagina, $porPagina, $offset] = obtenerPaginacion();
+$totalMarcas = (int)$pdo->query("SELECT COUNT(*) t FROM tbl_hotwheels_marcas")->fetch()['t'];
+$marcas = $pdo->query("SELECT * FROM tbl_hotwheels_marcas ORDER BY nombre ASC LIMIT $porPagina OFFSET $offset")->fetchAll();
 
 $tituloPagina = 'Marcas';
 $paginaActiva = 'marcas';
@@ -84,6 +86,7 @@ include __DIR__ . '/../includes/header.php';
                     </tbody>
                 </table>
             </div>
+            <?php renderizarPaginador($totalMarcas, $pagina, $porPagina); ?>
         </div>
     </div>
 </div>
