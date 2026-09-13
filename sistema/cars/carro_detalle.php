@@ -18,8 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
     $cantidad = (int)($_POST['cantidad'] ?? 1) ?: 1;
     $codigoBarras = trim($_POST['codigo_barras'] ?? '');
 
-    if ($modelo === '') {
-        redirigirConMensaje($id > 0 ? "carro_detalle.php?id=$id" : 'carro_detalle.php', 'error', 'El modelo es obligatorio.');
+    if ($modelo === '' || $idFabricante === null || $idSerie === null || $idMarca === null || $idEscala === null || $idTipo === null || $idColor === null || $cantidad < 1 || $codigoBarras === '') {
+        redirigirConMensaje($id > 0 ? "carro_detalle.php?id=$id" : 'carro_detalle.php', 'error', 'Todos los campos son obligatorios.');
     }
 
     if ($id > 0) {
@@ -108,17 +108,14 @@ include __DIR__ . '/../includes/header.php';
             <div class="card-panel">
                 <h6 class="panel-title"><i class="bi bi-car-front-fill"></i> Datos del Auto</h6>
                 <div class="row g-2">
-                    <div class="col-md-8">
+                    <input type="hidden" name="internalcode" value="<?= limpiar($carro['internalcode']) ?>">
+                    <div class="col-md-12">
                         <label class="form-label">Modelo</label>
                         <input type="text" name="modelo" class="form-control" value="<?= limpiar($carro['modelo']) ?>" required>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Código interno</label>
-                        <input type="text" name="internalcode" class="form-control" value="<?= limpiar($carro['internalcode']) ?>">
-                    </div>
                     <div class="col-md-6">
                         <label class="form-label">Fabricante</label>
-                        <select name="id_tbl_hotwheels_fabricantes" class="form-select">
+                        <select name="id_tbl_hotwheels_fabricantes" class="form-select" required>
                             <option value="">-- Seleccione --</option>
                             <?php foreach ($fabricantes as $f): ?>
                                 <option value="<?= $f['id'] ?>" <?= (int)$carro['id_tbl_hotwheels_fabricantes'] === (int)$f['id'] ? 'selected' : '' ?>><?= limpiar($f['nombre']) ?></option>
@@ -127,7 +124,7 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Marca</label>
-                        <select name="id_tbl_hotwheels_marcas" class="form-select">
+                        <select name="id_tbl_hotwheels_marcas" class="form-select" required>
                             <option value="">-- Seleccione --</option>
                             <?php foreach ($marcas as $m): ?>
                                 <option value="<?= $m['id'] ?>" <?= (int)$carro['id_tbl_hotwheels_marcas'] === (int)$m['id'] ? 'selected' : '' ?>><?= limpiar($m['nombre']) ?></option>
@@ -136,7 +133,7 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Serie</label>
-                        <select name="id_tbl_hotwheels_series" class="form-select">
+                        <select name="id_tbl_hotwheels_series" class="form-select" required>
                             <option value="">-- Seleccione --</option>
                             <?php foreach ($series as $s): ?>
                                 <option value="<?= $s['id'] ?>" <?= (int)$carro['id_tbl_hotwheels_series'] === (int)$s['id'] ? 'selected' : '' ?>><?= limpiar($s['nombre']) ?></option>
@@ -145,7 +142,7 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Tipo</label>
-                        <select name="id_tbl_hotwheels_tipos" class="form-select">
+                        <select name="id_tbl_hotwheels_tipos" class="form-select" required>
                             <option value="">-- Seleccione --</option>
                             <?php foreach ($tipos as $t): ?>
                                 <option value="<?= $t['id'] ?>" <?= (int)$carro['id_tbl_hotwheels_tipos'] === (int)$t['id'] ? 'selected' : '' ?>><?= limpiar($t['nombre']) ?></option>
@@ -154,7 +151,7 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Color</label>
-                        <select name="id_tbl_hotwheels_colores" class="form-select">
+                        <select name="id_tbl_hotwheels_colores" class="form-select" required>
                             <option value="">-- Seleccione --</option>
                             <?php foreach ($colores as $co): ?>
                                 <option value="<?= $co['id'] ?>" <?= (int)$carro['id_tbl_hotwheels_colores'] === (int)$co['id'] ? 'selected' : '' ?>><?= limpiar($co['nombre']) ?></option>
@@ -163,7 +160,7 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Escala</label>
-                        <select name="id_tbl_hotwheels_escalas" class="form-select">
+                        <select name="id_tbl_hotwheels_escalas" class="form-select" required>
                             <option value="">-- Seleccione --</option>
                             <?php foreach ($escalas as $e): ?>
                                 <option value="<?= $e['id'] ?>" <?= (int)$carro['id_tbl_hotwheels_escalas'] === (int)$e['id'] ? 'selected' : '' ?>><?= limpiar($e['nombre']) ?></option>
@@ -172,11 +169,11 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Cantidad</label>
-                        <input type="number" name="cantidad" class="form-control" value="<?= (int)$carro['cantidad'] ?>" min="1">
+                        <input type="number" name="cantidad" class="form-control" value="<?= (int)$carro['cantidad'] ?>" min="1" required>
                     </div>
                     <div class="col-md-9">
                         <label class="form-label">Código de barras</label>
-                        <input type="text" name="codigo_barras" class="form-control" value="<?= limpiar($carro['codigo_barras']) ?>">
+                        <input type="text" name="codigo_barras" class="form-control" value="<?= limpiar($carro['codigo_barras']) ?>" required>
                     </div>
                 </div>
                 <button class="btn btn-tsp px-4 mt-3" type="submit"><i class="bi bi-save"></i> Guardar</button>
