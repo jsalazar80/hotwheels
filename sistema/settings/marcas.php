@@ -30,9 +30,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'subir_logo') {
+    header('Content-Type: application/json');
     $idLogo = (int)($_POST['id'] ?? 0);
     $ok = $idLogo > 0 && procesarLogoMarca($pdo, $idLogo, $_SESSION['tsp_usuario_id']);
-    redirigirConMensaje('marcas.php', $ok ? 'ok' : 'error', $ok ? 'Logo actualizado.' : 'No se pudo subir el logo (verifique que sea PNG, JPG o JPEG).');
+    if ($ok) {
+        $rutaLogo = resolverRutaMiniaturaLogoMarca($idLogo) ?: resolverRutaLogoMarca($idLogo);
+        echo json_encode(['ok' => true, 'ruta' => $rutaLogo]);
+    } else {
+        echo json_encode(['ok' => false, 'mensaje' => 'No se pudo subir el logo (verifique que sea PNG, JPG o JPEG).']);
+    }
+    exit;
 }
 
 if (isset($_GET['toggle'])) {
@@ -82,18 +89,16 @@ include __DIR__ . '/../includes/header.php';
                         <?php $rutaLogo = resolverRutaMiniaturaLogoMarca($m['id']) ?: resolverRutaLogoMarca($m['id']); ?>
                         <tr>
                             <td>
-                                <form method="post" enctype="multipart/form-data" action="settings/marcas.php">
-                                    <input type="hidden" name="accion" value="subir_logo">
-                                    <input type="hidden" name="id" value="<?= $m['id'] ?>">
-                                    <label class="cursor-pointer d-inline-block mb-0" title="Subir/cambiar logo">
+                                <label class="cursor-pointer d-inline-block mb-0" title="Subir/cambiar logo">
+                                    <span id="logoMarca<?= $m['id'] ?>">
                                         <?php if ($rutaLogo): ?>
                                             <img src="<?= limpiar($rutaLogo) ?>" style="width:36px;height:36px;object-fit:cover;border-radius:4px;">
                                         <?php else: ?>
                                             <i class="bi bi-camera text-muted" style="font-size:1.4rem;"></i>
                                         <?php endif; ?>
-                                        <input type="file" name="logo" class="d-none" accept=".png,.jpg,.jpeg" onchange="this.form.submit()">
-                                    </label>
-                                </form>
+                                    </span>
+                                    <input type="file" class="d-none" accept=".png,.jpg,.jpeg" onchange="subirLogoMarca(this, <?= $m['id'] ?>)">
+                                </label>
                             </td>
                             <td><?= limpiar($m['nombre']) ?></td>
                             <td><span class="badge <?= (int)$m['state']===1?'bg-success':'bg-secondary' ?>"><?= (int)$m['state']===1?'Activo':'Inactivo' ?></span></td>
@@ -125,6 +130,31 @@ function limpiarForm() {
     document.getElementById('mar_id').value = 0;
     document.getElementById('tituloForm').innerHTML = '<i class="bi bi-tags"></i> Nueva Marca';
     document.getElementById('btnCancelar').classList.add('d-none');
+}
+
+const rutaMarcas = <?= json_encode(rutaScriptActual()) ?>;
+
+function subirLogoMarca(input, idMarca) {
+    if (!input.files.length) return;
+
+    const datos = new FormData();
+    datos.append('accion', 'subir_logo');
+    datos.append('id', idMarca);
+    datos.append('logo', input.files[0]);
+
+    fetch(rutaMarcas, { method: 'POST', body: datos })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.ok) {
+                document.getElementById('logoMarca' + idMarca).innerHTML =
+                    '<img src="' + data.ruta + '?t=' + Date.now() + '" style="width:36px;height:36px;object-fit:cover;border-radius:4px;">';
+                mostrarAviso('Logo actualizado.', 'success');
+            } else {
+                mostrarAviso(data.mensaje || 'No se pudo subir el logo.', 'error');
+            }
+        })
+        .catch(function () { mostrarAviso('No se pudo subir el logo.', 'error'); })
+        .finally(function () { input.value = ''; });
 }
 </script>
 
