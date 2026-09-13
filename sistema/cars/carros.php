@@ -56,7 +56,7 @@ include __DIR__ . '/../includes/header.php';
                 <input type="text" name="buscar" class="form-control form-control-sm" placeholder="Buscar por modelo, código o marca..." value="<?= limpiar($busqueda) ?>" style="width:260px;">
                 <button class="btn btn-sm btn-outline-tsp" type="submit"><i class="bi bi-search"></i></button>
             </form>
-            <a href="carro_detalle.php" class="btn btn-tsp btn-sm"><i class="bi bi-plus-circle"></i> Nuevo Auto</a>
+            <a href="cars/carro_detalle.php" class="btn btn-tsp btn-sm"><i class="bi bi-plus-circle"></i> Nuevo Auto</a>
         </div>
     </div>
     <div class="table-responsive">
@@ -82,8 +82,8 @@ include __DIR__ . '/../includes/header.php';
                     <td><?= (int)$c['cantidad'] ?></td>
                     <td><span class="badge <?= (int)$c['state']===1?'bg-success':'bg-secondary' ?>"><?= (int)$c['state']===1?'Activo':'Inactivo' ?></span></td>
                     <td class="text-nowrap">
-                        <a href="carro_detalle.php?id=<?= $c['id'] ?>" class="btn btn-sm btn-outline-tsp"><i class="bi bi-pencil"></i></a>
-                        <a href="carros.php?toggle=<?= $c['id'] ?>" class="btn btn-sm btn-outline-secondary" onclick="return confirmarAccion('¿Cambiar el estado de este auto?')"><i class="bi bi-toggle2-on"></i></a>
+                        <a href="cars/carro_detalle.php?id=<?= $c['id'] ?>" class="btn btn-sm btn-outline-tsp"><i class="bi bi-pencil"></i></a>
+                        <a href="cars/carros.php?toggle=<?= $c['id'] ?>" class="btn btn-sm btn-outline-secondary" onclick="return confirmarAccion('¿Cambiar el estado de este auto?')"><i class="bi bi-toggle2-on"></i></a>
                     </td>
                 </tr>
             <?php endforeach; ?>

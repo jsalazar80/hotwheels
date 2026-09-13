@@ -330,6 +330,22 @@ function requerirPermiso($idMenu) {
     }
 }
 
+/**
+ * Ruta del script actual relativa a la raíz de sistema/ (p.ej. "settings/colores.php"
+ * o "usuarios.php"), para construir enlaces que naveguen a la propia pantalla y sigan
+ * resolviendo bien bajo el <base href> de includes/header.php (que apunta a la raíz de
+ * sistema/, no al directorio del script — ver esa nota para el porqué).
+ */
+function rutaScriptActual() {
+    $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
+    $marcador = '/sistema/';
+    $pos = strpos($scriptName, $marcador);
+    if ($pos !== false) {
+        return substr($scriptName, $pos + strlen($marcador));
+    }
+    return ltrim($scriptName, '/');
+}
+
 /** Tamaños de página permitidos en el combo "Registros por página" de las listas. */
 const OPCIONES_POR_PAGINA = [25, 50, 100, 200];
 
@@ -379,10 +395,14 @@ function paginasVentana($actual, $total, $delta = 1) {
 function renderizarPaginador($totalRegistros, $pagina, $porPagina) {
     $totalPaginas = max(1, (int)ceil($totalRegistros / $porPagina));
 
+    // Enlace con ruta explícita (no solo "?query") porque <base href> (ver includes/header.php)
+    // apunta a la raíz de sistema/, no al directorio del script actual: un href "?pagina=2"
+    // resolvería contra esa raíz y perdería la subcarpeta (p.ej. settings/, cars/).
+    $rutaActual = rutaScriptActual();
     $parametrosBase = $_GET;
     unset($parametrosBase['pagina'], $parametrosBase['por_pagina']);
-    $construirUrl = function ($paginaDestino, $porPaginaDestino) use ($parametrosBase) {
-        return '?' . http_build_query(array_merge($parametrosBase, ['pagina' => $paginaDestino, 'por_pagina' => $porPaginaDestino]));
+    $construirUrl = function ($paginaDestino, $porPaginaDestino) use ($rutaActual, $parametrosBase) {
+        return $rutaActual . '?' . http_build_query(array_merge($parametrosBase, ['pagina' => $paginaDestino, 'por_pagina' => $porPaginaDestino]));
     };
 
     echo '<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">';

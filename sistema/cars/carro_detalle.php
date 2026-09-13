@@ -99,9 +99,9 @@ $paginaActiva = 'carros';
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<a href="carros.php" class="btn btn-sm btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> Volver al listado</a>
+<a href="cars/carros.php" class="btn btn-sm btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> Volver al listado</a>
 
-<form method="post" enctype="multipart/form-data" id="formCarro" action="carro_detalle.php<?= $id > 0 ? '?id=' . $id : '' ?>">
+<form method="post" enctype="multipart/form-data" id="formCarro" action="cars/carro_detalle.php<?= $id > 0 ? '?id=' . $id : '' ?>">
     <input type="hidden" name="accion" value="guardar">
     <div class="row g-3">
         <div class="col-lg-6">
@@ -213,7 +213,7 @@ include __DIR__ . '/../includes/header.php';
                                     <a href="<?= limpiar($rutaArchivo) ?>" target="_blank">
                                         <img src="<?= limpiar($rutaMiniatura ?: $rutaArchivo) ?>" style="width:100%; max-height:120px; object-fit:cover;">
                                     </a>
-                                    <a href="carro_detalle.php?id=<?= $id ?>&eliminar_archivo=<?= $a['id'] ?>" class="btn btn-sm btn-outline-danger mt-1 w-100" onclick="return confirmarAccion('¿Eliminar esta foto?')"><i class="bi bi-trash"></i></a>
+                                    <a href="cars/carro_detalle.php?id=<?= $id ?>&eliminar_archivo=<?= $a['id'] ?>" class="btn btn-sm btn-outline-danger mt-1 w-100" onclick="return confirmarAccion('¿Eliminar esta foto?')"><i class="bi bi-trash"></i></a>
                                 </div>
                             </div>
                         <?php endforeach; ?>
