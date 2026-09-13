@@ -171,24 +171,43 @@ img { max-width: 100%; }
 .buscador input:focus { border-color: var(--ambar); box-shadow: 0 0 0 3px var(--ambar-claro); }
 .nav-marcas {
     max-width: 1180px; margin: 0 auto;
-    display: flex; gap: 8px; overflow-x: auto;
-    padding: 0 20px 12px;
+    display: flex; gap: 14px; overflow-x: auto;
+    padding: 4px 20px 14px;
     scrollbar-width: thin;
 }
 .nav-marcas a {
     flex: 0 0 auto;
-    background: var(--crema-calida);
-    color: var(--carbon-oscuro);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 72px;
     text-decoration: none;
-    font-size: 0.78rem;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 999px;
-    white-space: nowrap;
-    border: 1px solid transparent;
-    transition: background .15s, color .15s, border-color .15s;
+    color: var(--carbon-oscuro);
+    text-align: center;
 }
-.nav-marcas a:hover { border-color: var(--ambar); }
+.nav-marcas .chip-logo {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--crema-calida);
+    border: 1px solid transparent;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    transition: border-color .15s, transform .15s;
+}
+.nav-marcas .chip-logo img { width: 100%; height: 100%; object-fit: contain; }
+.nav-marcas .chip-logo i { font-size: 1.2rem; color: #c9c2b2; }
+.nav-marcas a:hover .chip-logo { border-color: var(--ambar); transform: translateY(-2px); }
+.nav-marcas .chip-nombre {
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+.nav-marcas .chip-nombre small { display: block; font-weight: 400; opacity: .6; }
 
 /* ---------- Contenido ---------- */
 .contenedor { max-width: 1180px; margin: 0 auto; padding: 34px 20px 60px; }
@@ -279,10 +298,23 @@ footer a { color: #a39c8c; }
     </div>
     <nav class="nav-marcas">
         <?php foreach ($marcas as $m): ?>
-            <a href="#marca-<?= (int)$m['id'] ?>"><?= esc($m['nombre']) ?> <span style="opacity:.6;">(<?= count($carrosPorMarca[$m['id']]) ?>)</span></a>
+            <?php $rutaLogoNav = rutaMiniaturaLogoMarca($m['id']) ?: rutaLogoMarca($m['id']); ?>
+            <a href="#marca-<?= (int)$m['id'] ?>">
+                <span class="chip-logo">
+                    <?php if ($rutaLogoNav): ?>
+                        <img src="<?= esc($rutaLogoNav) ?>" alt="<?= esc($m['nombre']) ?>" loading="lazy">
+                    <?php else: ?>
+                        <i class="bi bi-award"></i>
+                    <?php endif; ?>
+                </span>
+                <span class="chip-nombre"><?= esc($m['nombre']) ?><small>(<?= count($carrosPorMarca[$m['id']]) ?>)</small></span>
+            </a>
         <?php endforeach; ?>
         <?php if ($carrosSinMarca): ?>
-            <a href="#marca-otras">Sin marca <span style="opacity:.6;">(<?= count($carrosSinMarca) ?>)</span></a>
+            <a href="#marca-otras">
+                <span class="chip-logo"><i class="bi bi-question-lg"></i></span>
+                <span class="chip-nombre">Sin marca<small>(<?= count($carrosSinMarca) ?>)</small></span>
+            </a>
         <?php endif; ?>
     </nav>
 </div>

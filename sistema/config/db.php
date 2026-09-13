@@ -12,7 +12,7 @@ if($_SERVER['HTTP_HOST']=="hotwheels.jjsc.me")
     define('DB_PASS', '');
     define('DB_CHARSET', 'utf8mb4');
 }
-elseif($_SERVER['HTTP_HOST']=="localhost" || $_SERVER['HTTP_HOST']=="192.168.1.229" || $_SERVER['HTTP_HOST']=="172.16.1.18")
+elseif($_SERVER['HTTP_HOST']=="localhost" || $_SERVER['HTTP_HOST']=="192.168.1.229" || $_SERVER['HTTP_HOST']=="172.16.1.21")
 {
     define('DB_HOST', 'localhost');
     define('DB_NAME', 'db_hotwheels');
