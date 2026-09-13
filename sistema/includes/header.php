@@ -1,9 +1,19 @@
+<?php
+// Prefijo de URL absoluto hasta "sistema/" inclusive (p.ej. "/hotwheels/sistema/" si el
+// DocumentRoot del servidor apunta a una carpeta que contiene a "sistema/", o "/" si
+// "sistema/" es servida directamente como raíz, como con `php -S -t sistema`). Se usa en
+// <base> para que las rutas relativas de la app (assets/, login.php, menu_opciones.php...)
+// sigan resolviendo bien desde pantallas en subcarpetas como settings/.
+$directorioActual = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])) . '/';
+$posSistema = strpos($directorioActual, '/sistema/');
+$baseHref = $posSistema !== false ? substr($directorioActual, 0, $posSistema + strlen('/sistema/')) : '/';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<base href="/">
+<base href="<?= htmlspecialchars($baseHref, ENT_QUOTES, 'UTF-8') ?>">
 <title><?= isset($tituloPagina) ? limpiar($tituloPagina) . ' - Hotwheels' : 'Hotwheels' ?></title>
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/img/icon-192.png">
