@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
     $hexcol = trim($_POST['hexcol'] ?? '');
 
     if ($nombre === '') {
-        redirigirConMensaje('colores.php', 'error', 'El nombre es obligatorio.');
+        redirigirConMensaje('settings/colores.php', 'error', 'El nombre es obligatorio.');
     }
 
     if ($id > 0) {
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt = $pdo->prepare($sqlUpd);
         $stmt->execute($paramsUpd);
         registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_colores', $id, interpolarSql($pdo, $sqlUpd, $paramsUpd), 'Actualización de color');
-        redirigirConMensaje('colores.php', 'ok', 'Color actualizado.');
+        redirigirConMensaje('settings/colores.php', 'ok', 'Color actualizado.');
     } else {
         $sqlIns = "INSERT INTO tbl_hotwheels_colores (nombre, hexcol, user_ing, fecha_hora_ing) VALUES (?,?,?,NOW())";
         $paramsIns = [$nombre, $hexcol, $_SESSION['tsp_usuario_id']];
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt->execute($paramsIns);
         $nuevoId = (int)$pdo->lastInsertId();
         registrarAuditoria($pdo, 'INS', 'tbl_hotwheels_colores', $nuevoId, interpolarSql($pdo, $sqlIns, $paramsIns), 'Registro de nuevo color');
-        redirigirConMensaje('colores.php', 'ok', 'Color registrado.');
+        redirigirConMensaje('settings/colores.php', 'ok', 'Color registrado.');
     }
 }
 
@@ -37,7 +37,7 @@ if (isset($_GET['toggle'])) {
     $stmt = $pdo->prepare($sqlToggle);
     $stmt->execute($paramsToggle);
     registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_colores', $id, interpolarSql($pdo, $sqlToggle, $paramsToggle), 'Cambio de estado (activo/inactivo) del color');
-    redirigirConMensaje('colores.php', 'ok', 'Estado actualizado.');
+    redirigirConMensaje('settings/colores.php', 'ok', 'Estado actualizado.');
 }
 
 $colores = $pdo->query("SELECT * FROM tbl_hotwheels_colores ORDER BY nombre ASC")->fetchAll();
@@ -52,7 +52,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="col-lg-4">
         <div class="card-panel">
             <h6 class="panel-title" id="tituloForm"><i class="bi bi-palette"></i> Nuevo Color</h6>
-            <form method="post" id="formColor">
+            <form method="post" id="formColor" action="settings/colores.php">
                 <input type="hidden" name="accion" value="guardar">
                 <input type="hidden" name="id" id="col_id" value="0">
                 <div class="mb-2">
@@ -82,7 +82,7 @@ include __DIR__ . '/../includes/header.php';
                             <td><span class="badge <?= (int)$c['state']===1?'bg-success':'bg-secondary' ?>"><?= (int)$c['state']===1?'Activo':'Inactivo' ?></span></td>
                             <td class="text-nowrap">
                                 <button class="btn btn-sm btn-outline-tsp" onclick='editarColor(<?= json_encode($c, JSON_HEX_APOS|JSON_HEX_QUOT) ?>)'><i class="bi bi-pencil"></i></button>
-                                <a href="colores.php?toggle=<?= $c['id'] ?>" class="btn btn-sm btn-outline-secondary" onclick="return confirmarAccion('¿Cambiar el estado de este color?')"><i class="bi bi-toggle2-on"></i></a>
+                                <a href="settings/colores.php?toggle=<?= $c['id'] ?>" class="btn btn-sm btn-outline-secondary" onclick="return confirmarAccion('¿Cambiar el estado de este color?')"><i class="bi bi-toggle2-on"></i></a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

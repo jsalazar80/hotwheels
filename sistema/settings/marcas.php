@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
     $nombre = trim($_POST['nombre'] ?? '');
 
     if ($nombre === '') {
-        redirigirConMensaje('marcas.php', 'error', 'El nombre es obligatorio.');
+        redirigirConMensaje('settings/marcas.php', 'error', 'El nombre es obligatorio.');
     }
 
     if ($id > 0) {
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt = $pdo->prepare($sqlUpd);
         $stmt->execute($paramsUpd);
         registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_marcas', $id, interpolarSql($pdo, $sqlUpd, $paramsUpd), 'Actualización de marca');
-        redirigirConMensaje('marcas.php', 'ok', 'Marca actualizada.');
+        redirigirConMensaje('settings/marcas.php', 'ok', 'Marca actualizada.');
     } else {
         $sqlIns = "INSERT INTO tbl_hotwheels_marcas (nombre, user_ing, fecha_hora_ing) VALUES (?,?,NOW())";
         $paramsIns = [$nombre, $_SESSION['tsp_usuario_id']];
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt->execute($paramsIns);
         $nuevoId = (int)$pdo->lastInsertId();
         registrarAuditoria($pdo, 'INS', 'tbl_hotwheels_marcas', $nuevoId, interpolarSql($pdo, $sqlIns, $paramsIns), 'Registro de nueva marca');
-        redirigirConMensaje('marcas.php', 'ok', 'Marca registrada.');
+        redirigirConMensaje('settings/marcas.php', 'ok', 'Marca registrada.');
     }
 }
 
@@ -36,7 +36,7 @@ if (isset($_GET['toggle'])) {
     $stmt = $pdo->prepare($sqlToggle);
     $stmt->execute($paramsToggle);
     registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_marcas', $id, interpolarSql($pdo, $sqlToggle, $paramsToggle), 'Cambio de estado (activo/inactivo) de la marca');
-    redirigirConMensaje('marcas.php', 'ok', 'Estado actualizado.');
+    redirigirConMensaje('settings/marcas.php', 'ok', 'Estado actualizado.');
 }
 
 $marcas = $pdo->query("SELECT * FROM tbl_hotwheels_marcas ORDER BY nombre ASC")->fetchAll();
@@ -51,7 +51,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="col-lg-4">
         <div class="card-panel">
             <h6 class="panel-title" id="tituloForm"><i class="bi bi-tags"></i> Nueva Marca</h6>
-            <form method="post" id="formMarca">
+            <form method="post" id="formMarca" action="settings/marcas.php">
                 <input type="hidden" name="accion" value="guardar">
                 <input type="hidden" name="id" id="mar_id" value="0">
                 <div class="mb-3">
@@ -76,7 +76,7 @@ include __DIR__ . '/../includes/header.php';
                             <td><span class="badge <?= (int)$m['state']===1?'bg-success':'bg-secondary' ?>"><?= (int)$m['state']===1?'Activo':'Inactivo' ?></span></td>
                             <td class="text-nowrap">
                                 <button class="btn btn-sm btn-outline-tsp" onclick='editarMarca(<?= json_encode($m, JSON_HEX_APOS|JSON_HEX_QUOT) ?>)'><i class="bi bi-pencil"></i></button>
-                                <a href="marcas.php?toggle=<?= $m['id'] ?>" class="btn btn-sm btn-outline-secondary" onclick="return confirmarAccion('¿Cambiar el estado de esta marca?')"><i class="bi bi-toggle2-on"></i></a>
+                                <a href="settings/marcas.php?toggle=<?= $m['id'] ?>" class="btn btn-sm btn-outline-secondary" onclick="return confirmarAccion('¿Cambiar el estado de esta marca?')"><i class="bi bi-toggle2-on"></i></a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

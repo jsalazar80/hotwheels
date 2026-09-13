@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
     $nombre = trim($_POST['nombre'] ?? '');
 
     if ($nombre === '') {
-        redirigirConMensaje('fabricantes.php', 'error', 'El nombre es obligatorio.');
+        redirigirConMensaje('settings/fabricantes.php', 'error', 'El nombre es obligatorio.');
     }
 
     if ($id > 0) {
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt = $pdo->prepare($sqlUpd);
         $stmt->execute($paramsUpd);
         registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_fabricantes', $id, interpolarSql($pdo, $sqlUpd, $paramsUpd), 'Actualización de fabricante');
-        redirigirConMensaje('fabricantes.php', 'ok', 'Fabricante actualizado.');
+        redirigirConMensaje('settings/fabricantes.php', 'ok', 'Fabricante actualizado.');
     } else {
         $sqlIns = "INSERT INTO tbl_hotwheels_fabricantes (nombre, user_ing, fecha_hora_ing) VALUES (?,?,NOW())";
         $paramsIns = [$nombre, $_SESSION['tsp_usuario_id']];
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         $stmt->execute($paramsIns);
         $nuevoId = (int)$pdo->lastInsertId();
         registrarAuditoria($pdo, 'INS', 'tbl_hotwheels_fabricantes', $nuevoId, interpolarSql($pdo, $sqlIns, $paramsIns), 'Registro de nuevo fabricante');
-        redirigirConMensaje('fabricantes.php', 'ok', 'Fabricante registrado.');
+        redirigirConMensaje('settings/fabricantes.php', 'ok', 'Fabricante registrado.');
     }
 }
 
@@ -36,7 +36,7 @@ if (isset($_GET['toggle'])) {
     $stmt = $pdo->prepare($sqlToggle);
     $stmt->execute($paramsToggle);
     registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_fabricantes', $id, interpolarSql($pdo, $sqlToggle, $paramsToggle), 'Cambio de estado (activo/inactivo) del fabricante');
-    redirigirConMensaje('fabricantes.php', 'ok', 'Estado actualizado.');
+    redirigirConMensaje('settings/fabricantes.php', 'ok', 'Estado actualizado.');
 }
 
 $fabricantes = $pdo->query("SELECT * FROM tbl_hotwheels_fabricantes ORDER BY nombre ASC")->fetchAll();
@@ -51,7 +51,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="col-lg-4">
         <div class="card-panel">
             <h6 class="panel-title" id="tituloForm"><i class="bi bi-building"></i> Nuevo Fabricante</h6>
-            <form method="post" id="formFabricante">
+            <form method="post" id="formFabricante" action="settings/fabricantes.php">
                 <input type="hidden" name="accion" value="guardar">
                 <input type="hidden" name="id" id="fab_id" value="0">
                 <div class="mb-3">
@@ -76,7 +76,7 @@ include __DIR__ . '/../includes/header.php';
                             <td><span class="badge <?= (int)$f['state']===1?'bg-success':'bg-secondary' ?>"><?= (int)$f['state']===1?'Activo':'Inactivo' ?></span></td>
                             <td class="text-nowrap">
                                 <button class="btn btn-sm btn-outline-tsp" onclick='editarFabricante(<?= json_encode($f, JSON_HEX_APOS|JSON_HEX_QUOT) ?>)'><i class="bi bi-pencil"></i></button>
-                                <a href="fabricantes.php?toggle=<?= $f['id'] ?>" class="btn btn-sm btn-outline-secondary" onclick="return confirmarAccion('¿Cambiar el estado de este fabricante?')"><i class="bi bi-toggle2-on"></i></a>
+                                <a href="settings/fabricantes.php?toggle=<?= $f['id'] ?>" class="btn btn-sm btn-outline-secondary" onclick="return confirmarAccion('¿Cambiar el estado de este fabricante?')"><i class="bi bi-toggle2-on"></i></a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
