@@ -88,7 +88,7 @@ include __DIR__ . '/includes/header.php';
                 <div class="row">
                     <div class="col-md-6 mb-2">
                         <label class="form-label">Nombre a mostrar</label>
-                        <input type="text" name="ml_sent_by_name" class="form-control" value="<?= limpiar($config['ml_sent_by_name']) ?>" placeholder="Ej: TechSupport">
+                        <input type="text" name="ml_sent_by_name" class="form-control" value="<?= limpiar($config['ml_sent_by_name']) ?>" placeholder="Ej: Hotwheels">
                     </div>
                     <div class="col-md-6 mb-2">
                         <label class="form-label">Servidor (host)</label>

@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Iniciar sesión - TechSupport</title>
+<title>Iniciar sesión - Hotwheels</title>
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/img/icon-192.png">
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
@@ -64,8 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="login-wrapper">
     <div class="login-box">
         <img src="assets/img/logo.svg" alt="Logo">
-        <h4 class="text-center fw-bold text-tsp mb-0">TechSupport</h4>
-        <p class="text-center text-muted mb-4" style="font-size:0.85rem;">Registro y Control de Soporte Técnico</p>
+        <h4 class="text-center fw-bold text-tsp mb-0">Hotwheels</h4>
+        <p class="text-center text-muted mb-4" style="font-size:0.85rem;">Panel de administración</p>
 
         <?php if ($error): ?>
             <div class="alert alert-danger py-2"><?= htmlspecialchars($error) ?></div>
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <button type="submit" class="btn btn-tsp w-100 py-2 fw-bold">Ingresar</button>
         </form>
-        <p class="text-center text-muted mt-4 mb-0" style="font-size:0.75rem;">&copy; <?= date('Y') ?> TechSupport. Todos los derechos reservados.</p>
+        <p class="text-center text-muted mt-4 mb-0" style="font-size:0.75rem;">&copy; <?= date('Y') ?> Hotwheels. Todos los derechos reservados.</p>
     </div>
 </div>
 </body>

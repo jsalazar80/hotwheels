@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $config = $pdo->query("SELECT * FROM tbl_configuracion ORDER BY id LIMIT 1")->fetch();
 if (!$config) {
-    $config = ['nombre_empresa' => 'TechSupport', 'logo' => '', 'prefijo_ticket' => 'TK-', 'siguiente_numero' => 1];
+    $config = ['nombre_empresa' => 'Hotwheels', 'logo' => '', 'prefijo_ticket' => 'TK-', 'siguiente_numero' => 1];
 }
 
 $tituloPagina = 'Datos de la Empresa';

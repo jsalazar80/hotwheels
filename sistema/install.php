@@ -50,14 +50,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Instalación - TechSupport</title>
+<title>Instalación - Hotwheels</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 <div class="container" style="max-width:480px;margin-top:80px;">
     <div class="card shadow-sm">
         <div class="card-body p-4">
-            <h4 class="mb-3">🛠️ Instalación TechSupport</h4>
+            <h4 class="mb-3">🛠️ Instalación Hotwheels</h4>
             <p class="text-muted">Configure el usuario administrador inicial del sistema.</p>
             <?php if ($mensaje): ?>
                 <div class="alert alert-<?= $exito ? 'success' : 'danger' ?>"><?= htmlspecialchars($mensaje) ?></div>

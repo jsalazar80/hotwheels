@@ -17,7 +17,7 @@ function obtenerConfiguracion($pdo) {
         $config = $stmt->fetch();
         if (!$config) {
             $config = [
-                'nombre_empresa' => 'TechSupport', 'logo' => '',
+                'nombre_empresa' => 'Hotwheels', 'logo' => '',
                 'prefijo_ticket' => 'TK-', 'siguiente_numero' => 1,
             ];
         }

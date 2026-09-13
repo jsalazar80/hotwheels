@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-This was originally "TechSupport", a PHP 8 + MySQL ticketing app. It has been stripped down to a bare skeleton — login, users, profiles/permissions, an administrable menu, and audit logging — as the base for a **new car-collection (Hot Wheels) inventory system** whose data model hasn't been designed yet. Built with plain procedural PHP (no framework, no build step) plus PDO, Bootstrap 5, and vanilla JS. The app root/entry point is `index.php`, but nearly all real code — including `composer.json`/`vendor/` — lives under `sistema/`, which is the actual webroot. The only Composer dependencies are `tecnickcom/tcpdf`, `phpmailer/phpmailer`, and `phpoffice/phpspreadsheet` (see [Reference-only screens](#reference-only-screens-tickets-domain) below); everything else is dependency-free.
+This project is now branded **Hotwheels** (originally "TechSupport", a PHP 8 + MySQL ticketing app). It has been stripped down to a bare skeleton — login, users, profiles/permissions, an administrable menu, and audit logging — as the base for a **new car-collection (Hot Wheels) inventory system** whose data model hasn't been designed yet. Built with plain procedural PHP (no framework, no build step) plus PDO, Bootstrap 5, and vanilla JS. The app root/entry point is `index.php`, but nearly all real code — including `composer.json`/`vendor/` — lives under `sistema/`, which is the actual webroot. The only Composer dependencies are `tecnickcom/tcpdf`, `phpmailer/phpmailer`, and `phpoffice/phpspreadsheet` (see [Reference-only screens](#reference-only-screens-tickets-domain) below); everything else is dependency-free.
 
 ## Running the app
 

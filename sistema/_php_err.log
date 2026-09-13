@@ -1,0 +1,7 @@
+[Sun Sep 13 08:17:09 2026] PHP 8.2.12 Development Server (http://localhost:8099) started
+[Sun Sep 13 08:17:11 2026] [::1]:60462 Accepted
+[Sun Sep 13 08:17:11 2026] [::1]:60462 [200]: GET /login.php
+[Sun Sep 13 08:17:11 2026] [::1]:60462 Closing
+[Sun Sep 13 08:17:11 2026] [::1]:60464 Accepted
+[Sun Sep 13 08:17:11 2026] [::1]:60464 [302]: GET /index.php
+[Sun Sep 13 08:17:11 2026] [::1]:60464 Closing

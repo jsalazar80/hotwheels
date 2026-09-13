@@ -20,7 +20,7 @@ if ($opcionesMenu) {
 <div class="sidebar" id="sidebar">
     <div class="sidebar-brand">
         <img src="assets/img/logo.svg" alt="Logo">
-        <div class="brand-text">Tech<small>SUPPORT</small></div>
+        <div class="brand-text">Hotwheels</div>
     </div>
     <ul class="sidebar-nav">
         <?php foreach ($opcionesMenu as $opcion): ?>

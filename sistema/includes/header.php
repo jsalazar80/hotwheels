@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title><?= isset($tituloPagina) ? limpiar($tituloPagina) . ' - TechSupport' : 'TechSupport' ?></title>
+<title><?= isset($tituloPagina) ? limpiar($tituloPagina) . ' - Hotwheels' : 'Hotwheels' ?></title>
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/img/icon-192.png">
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">

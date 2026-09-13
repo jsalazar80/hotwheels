@@ -3,7 +3,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 class SoportePDF extends TCPDF {
     public $rutaLogo = null;
-    public $nombreEmpresa = 'TechSupport';
+    public $nombreEmpresa = 'Hotwheels';
 
     public function Header() {
         if ($this->rutaLogo) {
@@ -100,7 +100,7 @@ function construirPdfSoporte($pdo, $id) {
     $pdf = new SoportePDF('P', 'mm', 'A4', true, 'UTF-8', false);
     $pdf->rutaLogo = $rutaLogo;
     $pdf->nombreEmpresa = $config['nombre_empresa'];
-    $pdf->SetCreator('TechSupport');
+    $pdf->SetCreator('Hotwheels');
     $pdf->SetAuthor($config['nombre_empresa']);
     $pdf->SetTitle('Soporte ' . $s['numero']);
     $pdf->setPrintHeader(true);

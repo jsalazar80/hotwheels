@@ -1,6 +1,6 @@
 {
-    "name": "TechSupport - Registro y Control de Soporte Técnico",
-    "short_name": "TechSupport",
+    "name": "Hotwheels",
+    "short_name": "Hotwheels",
     "start_url": "index.php",
     "scope": "./",
     "display": "standalone",
