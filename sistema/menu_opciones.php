@@ -27,6 +27,13 @@ if ($permisos) {
     $opciones = $stmt->fetchAll();
 }
 
+// Una opción puede a su vez agrupar sus propias opciones hijas (ej. "Config. Carros"
+// dentro de "Configuración"); en ese caso enlaza a esta misma pantalla en vez de a su url.
+foreach ($opciones as &$op) {
+    $op['tiene_hijos'] = menuTieneHijos($pdo, $op['id']);
+}
+unset($op);
+
 $tituloPagina = limpiar($menuPadre['nombre']);
 $paginaActiva = '';
 include __DIR__ . '/includes/header.php';
@@ -37,8 +44,12 @@ include __DIR__ . '/includes/header.php';
     <div class="row g-3">
         <?php foreach ($opciones as $op): ?>
             <?php
-                $separador = str_contains($op['url'], '?') ? '&' : '?';
-                $enlaceHijo = $op['url'] . $separador . 'padre=' . $padre;
+                if ($op['tiene_hijos']) {
+                    $enlaceHijo = 'menu_opciones.php?padre=' . $op['id'];
+                } else {
+                    $separador = str_contains($op['url'], '?') ? '&' : '?';
+                    $enlaceHijo = $op['url'] . $separador . 'padre=' . $padre;
+                }
             ?>
             <div class="col-6 col-md-4 col-lg-3">
                 <a href="<?= limpiar($enlaceHijo) ?>" class="text-decoration-none">
