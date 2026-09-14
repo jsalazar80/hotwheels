@@ -268,6 +268,27 @@ footer a { color: #a39c8c; }
 .lightbox .cerrar { position: absolute; top: 18px; right: 22px; color: #fff; font-size: 1.8rem; background: none; border: none; cursor: pointer; opacity: .85; }
 .lightbox .titulo { position: absolute; top: 20px; left: 24px; color: #fff; font-family: 'Playfair Display', Georgia, serif; font-size: 1.1rem; }
 
+/* ---------- Botón flotante "volver arriba" ---------- */
+.btn-arriba {
+    position: fixed;
+    right: 20px; bottom: 24px;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--carbon-oscuro);
+    color: #fff;
+    border: 1px solid var(--ambar);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    text-decoration: none;
+    box-shadow: 0 6px 18px rgba(20,22,26,0.3);
+    opacity: 0; visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity .2s, transform .2s, visibility .2s, background .15s;
+    z-index: 60;
+}
+.btn-arriba.show { opacity: 1; visibility: visible; transform: translateY(0); }
+.btn-arriba:hover { background: var(--rojo-principal); border-color: var(--rojo-principal); color: #fff; }
+
 @media (max-width: 480px) {
     .hero { padding: 42px 16px 30px; }
     .hero-login { position: static; display: inline-flex; margin-bottom: 14px; }
@@ -373,6 +394,10 @@ footer a { color: #a39c8c; }
     <img id="lightboxImg" src="" alt="">
 </div>
 
+<a href="#" class="btn-arriba" id="btnArriba" aria-label="Volver arriba" onclick="event.preventDefault(); window.scrollTo({top:0, behavior:'smooth'});">
+    <i class="bi bi-arrow-up"></i>
+</a>
+
 <script>
 function abrirLightbox(src, titulo) {
     document.getElementById('lightboxImg').src = src;
@@ -424,6 +449,13 @@ document.addEventListener('keydown', function (e) {
 
         sinResultados.style.display = algunaVisible ? 'none' : 'block';
     }
+})();
+
+(function () {
+    const boton = document.getElementById('btnArriba');
+    window.addEventListener('scroll', function () {
+        boton.classList.toggle('show', window.scrollY > 400);
+    });
 })();
 </script>
 
