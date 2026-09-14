@@ -212,3 +212,33 @@ body {
     color: var(--carbon-oscuro);
 }
 .dropzone i { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+
+/* ---------- Fichas (vista móvil de listas, ej. carros.php) ---------- */
+.ficha-item {
+    border: 1px solid #e7e2d8;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: #fff;
+}
+.ficha-item .ficha-foto {
+    width: 56px; height: 56px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex: 0 0 auto;
+    background: var(--crema-calida);
+    display: flex; align-items: center; justify-content: center;
+}
+.ficha-item .ficha-foto img { width: 100%; height: 100%; object-fit: cover; }
+.ficha-item .ficha-foto i { font-size: 1.4rem; color: #c9c2b2; }
+.ficha-item .ficha-chip {
+    background: var(--crema-calida);
+    color: #6b6455;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.ficha-item .ficha-chip .swatch { width: 8px; height: 8px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,.15); }

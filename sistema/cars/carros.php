@@ -71,7 +71,7 @@ include __DIR__ . '/../includes/header.php';
             <a href="cars/carro_detalle.php" class="btn btn-tsp btn-sm"><i class="bi bi-plus-circle"></i> Nuevo Auto</a>
         </div>
     </div>
-    <div class="table-responsive">
+    <div class="table-responsive d-none d-md-block">
         <table class="table table-sm table-tsp align-middle">
             <thead><tr><th style="width:50px;"></th><th>Modelo</th><th>Marca</th><th>Serie</th><th>Tipo</th><th>Color</th><th>Escala</th><th>Cant.</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody>
@@ -112,6 +112,55 @@ include __DIR__ . '/../includes/header.php';
             </tbody>
         </table>
     </div>
+
+    <div class="d-md-none">
+        <?php foreach ($carros as $c): ?>
+            <?php
+                $rutaMiniatura = $c['portada'] ? resolverRutaMiniaturaCarro($c['id'], $c['portada']) : null;
+                $fotosCarro = $fotosPorCarro[$c['id']] ?? [];
+            ?>
+            <div class="ficha-item">
+                <div class="d-flex gap-3">
+                    <div class="ficha-foto<?= $fotosCarro ? ' cursor-pointer' : '' ?>"
+                         <?php if ($fotosCarro): ?>
+                            <?php
+                                $galeria = array_map(fn($archivo) => [
+                                    'archivo' => resolverRutaArchivoCarro($c['id'], $archivo),
+                                    'miniatura' => resolverRutaMiniaturaCarro($c['id'], $archivo) ?: resolverRutaArchivoCarro($c['id'], $archivo),
+                                ], $fotosCarro);
+                            ?>
+                            onclick='abrirGaleria(<?= json_encode($c['modelo'], JSON_HEX_APOS|JSON_HEX_QUOT) ?>, <?= json_encode($galeria, JSON_HEX_APOS|JSON_HEX_QUOT) ?>)'
+                         <?php endif; ?>>
+                        <?php if ($rutaMiniatura || $fotosCarro): ?>
+                            <img src="<?= limpiar($rutaMiniatura ?: resolverRutaArchivoCarro($c['id'], $fotosCarro[0])) ?>">
+                        <?php else: ?>
+                            <i class="bi bi-image"></i>
+                        <?php endif; ?>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div class="fw-bold"><?= limpiar($c['modelo']) ?></div>
+                            <span class="badge <?= (int)$c['state']===1?'bg-success':'bg-secondary' ?> flex-shrink-0"><?= (int)$c['state']===1?'Activo':'Inactivo' ?></span>
+                        </div>
+                        <div class="small text-muted mb-2"><?= limpiar($c['marca_nombre'] ?: 'Sin marca') ?></div>
+                        <div class="d-flex flex-wrap gap-1">
+                            <?php if ($c['serie_nombre']): ?><span class="ficha-chip"><i class="bi bi-collection"></i> <?= limpiar($c['serie_nombre']) ?></span><?php endif; ?>
+                            <?php if ($c['tipo_nombre']): ?><span class="ficha-chip"><?= limpiar($c['tipo_nombre']) ?></span><?php endif; ?>
+                            <?php if ($c['color_nombre']): ?><span class="ficha-chip"><span class="swatch" style="background-color:<?= limpiar($c['color_hex'] ?: '#fff') ?>;"></span> <?= limpiar($c['color_nombre']) ?></span><?php endif; ?>
+                            <?php if ($c['escala_nombre']): ?><span class="ficha-chip"><?= limpiar($c['escala_nombre']) ?></span><?php endif; ?>
+                            <span class="ficha-chip">x<?= (int)$c['cantidad'] ?></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-3">
+                    <a href="cars/carro_detalle.php?id=<?= $c['id'] ?>" class="btn btn-sm btn-outline-tsp flex-grow-1"><i class="bi bi-pencil"></i> Editar</a>
+                    <a href="cars/carros.php?toggle=<?= $c['id'] ?>" class="btn btn-sm btn-outline-secondary flex-grow-1" onclick="return confirmarAccion('¿Cambiar el estado de este auto?')"><i class="bi bi-toggle2-on"></i> Estado</a>
+                </div>
+            </div>
+        <?php endforeach; ?>
+        <?php if (!$carros): ?><div class="text-center text-muted py-4">No hay autos registrados.</div><?php endif; ?>
+    </div>
+
     <?php renderizarPaginador($totalCarros, $pagina, $porPagina); ?>
 </div>
 
