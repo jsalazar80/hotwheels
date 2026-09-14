@@ -62,14 +62,14 @@ include __DIR__ . '/../includes/header.php';
 <?php botonVolverMenu(); ?>
 <div class="card-panel">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-        <h6 class="panel-title mb-0 border-0 pb-0"><i class="bi bi-car-front-fill"></i> Carros (<?= $totalCarros ?>)</h6>
-        <div class="d-flex gap-2">
-            <form method="get" class="d-flex gap-2">
-                <input type="text" name="buscar" class="form-control form-control-sm" placeholder="Buscar por modelo, código o marca..." value="<?= limpiar($busqueda) ?>" style="width:260px;">
-                <button class="btn btn-sm btn-outline-tsp" type="submit"><i class="bi bi-search"></i></button>
-            </form>
+        <div class="d-flex align-items-center gap-2">
+            <h6 class="panel-title mb-0 border-0 pb-0"><i class="bi bi-car-front-fill"></i> Carros (<?= $totalCarros ?>)</h6>
             <a href="cars/carro_detalle.php" class="btn btn-tsp btn-sm"><i class="bi bi-plus-circle"></i> Nuevo Auto</a>
         </div>
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="buscar" class="form-control form-control-sm" placeholder="Buscar por modelo, código o marca..." value="<?= limpiar($busqueda) ?>" style="width:260px;">
+            <button class="btn btn-sm btn-outline-tsp" type="submit"><i class="bi bi-search"></i></button>
+        </form>
     </div>
     <div class="table-responsive d-none d-md-block">
         <table class="table table-sm table-tsp align-middle">
