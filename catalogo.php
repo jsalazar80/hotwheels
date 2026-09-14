@@ -231,7 +231,7 @@ img { max-width: 100%; }
     flex: 0 0 auto;
 }
 
-.grid-autos { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 16px; }
+.grid-autos { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 16px; align-items: start; }
 .auto-card {
     background: #fff;
     border: 1px solid #e7e2d8;
@@ -241,13 +241,13 @@ img { max-width: 100%; }
 }
 .auto-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(20,22,26,0.12); }
 .auto-foto {
-    aspect-ratio: 4 / 3;
+    min-height: 90px;
     background: var(--crema-calida);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     overflow: hidden;
 }
-.auto-foto img { width: 100%; height: 100%; object-fit: cover; }
+.auto-foto img { display: block; width: 100%; height: auto; }
 .auto-foto i { font-size: 2rem; color: #c9c2b2; }
 .auto-info { padding: 10px 12px 13px; }
 .auto-info .modelo { font-weight: 700; font-size: 0.86rem; line-height: 1.25; margin-bottom: 6px; min-height: 2.2em; }
