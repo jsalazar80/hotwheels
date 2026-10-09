@@ -153,7 +153,7 @@ function subirLogoMarca(input, idMarca) {
         .then(function (data) {
             if (data.ok) {
                 document.getElementById('logoMarca' + idMarca).innerHTML =
-                    '<img src="' + data.ruta + '?t=' + Date.now() + '" style="width:36px;height:36px;object-fit:cover;border-radius:4px;">';
+                    '<img src="' + data.ruta + '" style="width:36px;height:36px;object-fit:cover;border-radius:4px;">';
                 mostrarAviso('Logo actualizado.', 'success');
             } else {
                 mostrarAviso(data.mensaje || 'No se pudo subir el logo.', 'error');

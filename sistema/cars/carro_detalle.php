@@ -308,7 +308,7 @@ function rotarFotoDetalle(idArchivo) {
         .then(function (data) {
             if (data.ok) {
                 const img = document.getElementById('fotoAdjunta' + idArchivo);
-                if (img) img.src = data.miniatura + '?t=' + Date.now();
+                if (img) img.src = data.miniatura;
                 mostrarAviso('Foto girada.', 'success');
             } else {
                 mostrarAviso(data.mensaje || 'No se pudo girar la foto.', 'error');

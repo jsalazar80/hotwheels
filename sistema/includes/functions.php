@@ -145,13 +145,16 @@ function procesarArchivosAdjuntosCarro($pdo, $idCarro, $userId) {
 
 /** Ruta (relativa al webroot sistema/) de la foto real de un auto. */
 function resolverRutaArchivoCarro($idCarro, $nombreArchivo) {
-    return 'files/carros/folder_' . $idCarro . '/' . $nombreArchivo;
+    $rel = 'files/carros/folder_' . $idCarro . '/' . $nombreArchivo;
+    $full = __DIR__ . '/../' . $rel;
+    return file_exists($full) ? $rel . '?v=' . filemtime($full) : $rel;
 }
 
 /** Ruta de la miniatura de una foto de un auto, o null si aún no existe. */
 function resolverRutaMiniaturaCarro($idCarro, $nombreArchivo) {
     $rel = 'files/carros/folder_' . $idCarro . '/thumbnail/s_' . $nombreArchivo;
-    return file_exists(__DIR__ . '/../' . $rel) ? $rel : null;
+    $full = __DIR__ . '/../' . $rel;
+    return file_exists($full) ? $rel . '?v=' . filemtime($full) : null;
 }
 
 /** Rota 90° en sentido horario un archivo JPG en disco, sobrescribiéndolo. */
@@ -205,13 +208,15 @@ function rotarFotoCarro($pdo, $idArchivo) {
 /** Ruta (relativa al webroot sistema/) del logo real de una marca, o null si no existe. */
 function resolverRutaLogoMarca($idMarca) {
     $rel = 'files/marcas/folder_' . $idMarca . '/fot_' . $idMarca . '.jpg';
-    return file_exists(__DIR__ . '/../' . $rel) ? $rel : null;
+    $full = __DIR__ . '/../' . $rel;
+    return file_exists($full) ? $rel . '?v=' . filemtime($full) : null;
 }
 
 /** Ruta de la miniatura del logo de una marca, o null si no existe. */
 function resolverRutaMiniaturaLogoMarca($idMarca) {
     $rel = 'files/marcas/folder_' . $idMarca . '/thumbnail/s_fot_' . $idMarca . '.jpg';
-    return file_exists(__DIR__ . '/../' . $rel) ? $rel : null;
+    $full = __DIR__ . '/../' . $rel;
+    return file_exists($full) ? $rel . '?v=' . filemtime($full) : null;
 }
 
 /**

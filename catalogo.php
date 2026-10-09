@@ -3,19 +3,24 @@ $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_HOST'] ?? 'localhost';
 require __DIR__ . '/sistema/config/db.php';
 
 function rutaFotoCarro($idCarro, $archivo) {
-    return 'sistema/files/carros/folder_' . $idCarro . '/' . $archivo;
+    $rel = 'sistema/files/carros/folder_' . $idCarro . '/' . $archivo;
+    $full = __DIR__ . '/' . $rel;
+    return file_exists($full) ? $rel . '?v=' . filemtime($full) : $rel;
 }
 function rutaMiniaturaCarro($idCarro, $archivo) {
     $rel = 'sistema/files/carros/folder_' . $idCarro . '/thumbnail/s_' . $archivo;
-    return file_exists(__DIR__ . '/' . $rel) ? $rel : null;
+    $full = __DIR__ . '/' . $rel;
+    return file_exists($full) ? $rel . '?v=' . filemtime($full) : null;
 }
 function rutaLogoMarca($idMarca) {
     $rel = 'sistema/files/marcas/folder_' . $idMarca . '/fot_' . $idMarca . '.jpg';
-    return file_exists(__DIR__ . '/' . $rel) ? $rel : null;
+    $full = __DIR__ . '/' . $rel;
+    return file_exists($full) ? $rel . '?v=' . filemtime($full) : null;
 }
 function rutaMiniaturaLogoMarca($idMarca) {
     $rel = 'sistema/files/marcas/folder_' . $idMarca . '/thumbnail/s_fot_' . $idMarca . '.jpg';
-    return file_exists(__DIR__ . '/' . $rel) ? $rel : null;
+    $full = __DIR__ . '/' . $rel;
+    return file_exists($full) ? $rel . '?v=' . filemtime($full) : null;
 }
 function esc($v) { return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8'); }
 

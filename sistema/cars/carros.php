@@ -223,10 +223,9 @@ function rotarFoto(idArchivo) {
         .then(function (r) { return r.json(); })
         .then(function (data) {
             if (data.ok) {
-                const marcaTiempo = '?t=' + Date.now();
                 const imgModal = document.getElementById('fotoGaleria' + idArchivo);
-                if (imgModal) imgModal.src = data.miniatura + marcaTiempo;
-                if (data.es_portada && elementoGaleriaActual) elementoGaleriaActual.src = data.miniatura + marcaTiempo;
+                if (imgModal) imgModal.src = data.miniatura;
+                if (data.es_portada && elementoGaleriaActual) elementoGaleriaActual.src = data.miniatura;
                 mostrarAviso('Foto girada.', 'success');
             } else {
                 mostrarAviso(data.mensaje || 'No se pudo girar la foto.', 'error');
