@@ -11,6 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         redirigirConMensaje('series.php', 'error', 'El nombre es obligatorio.');
     }
 
+    $stmtExiste = $pdo->prepare("SELECT id FROM tbl_hotwheels_series WHERE LOWER(nombre) = LOWER(?) AND id != ?");
+    $stmtExiste->execute([$nombre, $id]);
+    if ($stmtExiste->fetch()) {
+        redirigirConMensaje('series.php', 'error', 'Ya existe una serie con ese nombre.');
+    }
+
     if ($id > 0) {
         $sqlUpd = "UPDATE tbl_hotwheels_series SET nombre=? WHERE id=?";
         $paramsUpd = [$nombre, $id];
