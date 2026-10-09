@@ -19,6 +19,19 @@ if (isset($_GET['verificar_modelo'])) {
     exit;
 }
 
+// ---- Girar una foto adjunta 90° (llamada por fetch() desde la galería) ----
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'rotar_foto') {
+    header('Content-Type: application/json');
+    $idArchivoRotar = (int)($_POST['id_archivo'] ?? 0);
+    $resultado = $idArchivoRotar > 0 ? rotarFotoCarro($pdo, $idArchivoRotar) : false;
+    if ($resultado) {
+        echo json_encode(['ok' => true] + $resultado);
+    } else {
+        echo json_encode(['ok' => false, 'mensaje' => 'No se pudo girar la foto.']);
+    }
+    exit;
+}
+
 // ---- Guardar (crear o actualizar) ----
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guardar') {
     $modelo = trim($_POST['modelo'] ?? '');
@@ -242,9 +255,12 @@ include __DIR__ . '/../includes/header.php';
                             <div class="col-6 col-md-4">
                                 <div class="border rounded p-2 text-center position-relative">
                                     <a href="<?= limpiar($rutaArchivo) ?>" target="_blank">
-                                        <img src="<?= limpiar($rutaMiniatura ?: $rutaArchivo) ?>" style="width:100%; max-height:120px; object-fit:cover;">
+                                        <img id="fotoAdjunta<?= $a['id'] ?>" src="<?= limpiar($rutaMiniatura ?: $rutaArchivo) ?>" style="width:100%; max-height:120px; object-fit:cover;">
                                     </a>
-                                    <a href="cars/carro_detalle.php?id=<?= $id ?>&eliminar_archivo=<?= $a['id'] ?>" class="btn btn-sm btn-outline-danger mt-1 w-100" onclick="return confirmarAccion('¿Eliminar esta foto?')"><i class="bi bi-trash"></i></a>
+                                    <div class="d-flex gap-1 mt-1">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" onclick="rotarFotoDetalle(<?= $a['id'] ?>)" title="Girar"><i class="bi bi-arrow-clockwise"></i></button>
+                                        <a href="cars/carro_detalle.php?id=<?= $id ?>&eliminar_archivo=<?= $a['id'] ?>" class="btn btn-sm btn-outline-danger flex-grow-1" title="Eliminar" onclick="return confirmarAccion('¿Eliminar esta foto?')"><i class="bi bi-trash"></i></a>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -281,6 +297,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 400);
     });
 });
+
+function rotarFotoDetalle(idArchivo) {
+    const datos = new FormData();
+    datos.append('accion', 'rotar_foto');
+    datos.append('id_archivo', idArchivo);
+
+    fetch(<?= json_encode(rutaScriptActual()) ?>, { method: 'POST', body: datos })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.ok) {
+                const img = document.getElementById('fotoAdjunta' + idArchivo);
+                if (img) img.src = data.miniatura + '?t=' + Date.now();
+                mostrarAviso('Foto girada.', 'success');
+            } else {
+                mostrarAviso(data.mensaje || 'No se pudo girar la foto.', 'error');
+            }
+        })
+        .catch(function () { mostrarAviso('No se pudo girar la foto.', 'error'); });
+}
 </script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
