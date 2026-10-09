@@ -85,7 +85,8 @@ $escalas = $pdo->query("SELECT * FROM tbl_hotwheels_escalas WHERE state=1 ORDER 
 $tipos = $pdo->query("SELECT * FROM tbl_hotwheels_tipos WHERE state=1 ORDER BY nombre ASC")->fetchAll();
 $colores = $pdo->query("SELECT * FROM tbl_hotwheels_colores WHERE state=1 ORDER BY nombre ASC")->fetchAll();
 
-// ---- Cargar el auto (edición) o valores por defecto (nuevo) ----
+// ---- Cargar el auto (edición) o valores por defecto (nuevo, opcionalmente clonado) ----
+$carroOrigen = null;
 if ($id > 0) {
     $stmt = $pdo->prepare("SELECT * FROM tbl_hotwheels_carros WHERE id = ?");
     $stmt->execute([$id]);
@@ -94,11 +95,23 @@ if ($id > 0) {
         redirigirConMensaje('carros.php', 'error', 'Auto no encontrado.');
     }
 } else {
-    $carro = [
-        'internalcode' => '', 'id_tbl_hotwheels_fabricantes' => null, 'id_tbl_hotwheels_series' => null,
-        'id_tbl_hotwheels_marcas' => null, 'modelo' => '', 'id_tbl_hotwheels_escalas' => 1,
-        'id_tbl_hotwheels_tipos' => null, 'id_tbl_hotwheels_colores' => null, 'cantidad' => 1, 'codigo_barras' => '',
-    ];
+    $idClonar = (int)($_GET['clonar'] ?? 0);
+    if ($idClonar > 0) {
+        $stmtClon = $pdo->prepare("SELECT * FROM tbl_hotwheels_carros WHERE id = ?");
+        $stmtClon->execute([$idClonar]);
+        $carroOrigen = $stmtClon->fetch() ?: null;
+    }
+
+    if ($carroOrigen) {
+        $carro = $carroOrigen;
+        $carro['internalcode'] = ''; // el código interno del original no se copia
+    } else {
+        $carro = [
+            'internalcode' => '', 'id_tbl_hotwheels_fabricantes' => null, 'id_tbl_hotwheels_series' => null,
+            'id_tbl_hotwheels_marcas' => null, 'modelo' => '', 'id_tbl_hotwheels_escalas' => 1,
+            'id_tbl_hotwheels_tipos' => null, 'id_tbl_hotwheels_colores' => null, 'cantidad' => 1, 'codigo_barras' => '',
+        ];
+    }
 }
 
 $archivos = [];
@@ -114,6 +127,12 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <a href="cars/carros.php" class="btn btn-sm btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> Volver al listado</a>
+
+<?php if ($carroOrigen): ?>
+    <div class="alert alert-info d-flex align-items-center gap-2">
+        <i class="bi bi-copy"></i> Creando un auto nuevo a partir de <strong><?= limpiar($carroOrigen['modelo']) ?></strong>. Revise y ajuste los datos antes de guardar.
+    </div>
+<?php endif; ?>
 
 <form method="post" enctype="multipart/form-data" id="formCarro" action="cars/carro_detalle.php<?= $id > 0 ? '?id=' . $id : '' ?>">
     <input type="hidden" name="accion" value="guardar">

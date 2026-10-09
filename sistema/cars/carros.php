@@ -103,8 +103,9 @@ include __DIR__ . '/../includes/header.php';
                     <td><?= (int)$c['cantidad'] ?></td>
                     <td><span class="badge <?= (int)$c['state']===1?'bg-success':'bg-secondary' ?>"><?= (int)$c['state']===1?'Activo':'Inactivo' ?></span></td>
                     <td class="text-nowrap">
-                        <a href="cars/carro_detalle.php?id=<?= $c['id'] ?>" class="btn btn-sm btn-outline-tsp"><i class="bi bi-pencil"></i></a>
-                        <a href="cars/carros.php?toggle=<?= $c['id'] ?>" class="btn btn-sm btn-outline-secondary" onclick="return confirmarAccion('¿Cambiar el estado de este auto?')"><i class="bi bi-toggle2-on"></i></a>
+                        <a href="cars/carro_detalle.php?id=<?= $c['id'] ?>" class="btn btn-sm btn-outline-tsp" title="Editar"><i class="bi bi-pencil"></i></a>
+                        <a href="cars/carro_detalle.php?clonar=<?= $c['id'] ?>" class="btn btn-sm btn-outline-tsp" title="Clonar"><i class="bi bi-copy"></i></a>
+                        <a href="cars/carros.php?toggle=<?= $c['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Cambiar estado" onclick="return confirmarAccion('¿Cambiar el estado de este auto?')"><i class="bi bi-toggle2-on"></i></a>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -154,6 +155,7 @@ include __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="d-flex gap-2 mt-3">
                     <a href="cars/carro_detalle.php?id=<?= $c['id'] ?>" class="btn btn-sm btn-outline-tsp flex-grow-1"><i class="bi bi-pencil"></i> Editar</a>
+                    <a href="cars/carro_detalle.php?clonar=<?= $c['id'] ?>" class="btn btn-sm btn-outline-tsp flex-grow-1"><i class="bi bi-copy"></i> Clonar</a>
                     <a href="cars/carros.php?toggle=<?= $c['id'] ?>" class="btn btn-sm btn-outline-secondary flex-grow-1" onclick="return confirmarAccion('¿Cambiar el estado de este auto?')"><i class="bi bi-toggle2-on"></i> Estado</a>
                 </div>
             </div>
