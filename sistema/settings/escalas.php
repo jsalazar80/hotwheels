@@ -11,6 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         redirigirConMensaje('escalas.php', 'error', 'El nombre es obligatorio.');
     }
 
+    $stmtExiste = $pdo->prepare("SELECT id FROM tbl_hotwheels_escalas WHERE LOWER(nombre) = LOWER(?) AND id != ?");
+    $stmtExiste->execute([$nombre, $id]);
+    if ($stmtExiste->fetch()) {
+        redirigirConMensaje('escalas.php', 'error', 'Ya existe una escala con ese nombre.');
+    }
+
     if ($id > 0) {
         $sqlUpd = "UPDATE tbl_hotwheels_escalas SET nombre=? WHERE id=?";
         $paramsUpd = [$nombre, $id];

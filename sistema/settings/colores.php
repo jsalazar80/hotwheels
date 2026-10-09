@@ -12,6 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         redirigirConMensaje('colores.php', 'error', 'El nombre es obligatorio.');
     }
 
+    $stmtExiste = $pdo->prepare("SELECT id FROM tbl_hotwheels_colores WHERE LOWER(nombre) = LOWER(?) AND id != ?");
+    $stmtExiste->execute([$nombre, $id]);
+    if ($stmtExiste->fetch()) {
+        redirigirConMensaje('colores.php', 'error', 'Ya existe un color con ese nombre.');
+    }
+
     if ($id > 0) {
         $sqlUpd = "UPDATE tbl_hotwheels_colores SET nombre=?, hexcol=? WHERE id=?";
         $paramsUpd = [$nombre, $hexcol, $id];

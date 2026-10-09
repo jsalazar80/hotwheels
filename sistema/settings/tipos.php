@@ -11,6 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'guard
         redirigirConMensaje('tipos.php', 'error', 'El nombre es obligatorio.');
     }
 
+    $stmtExiste = $pdo->prepare("SELECT id FROM tbl_hotwheels_tipos WHERE LOWER(nombre) = LOWER(?) AND id != ?");
+    $stmtExiste->execute([$nombre, $id]);
+    if ($stmtExiste->fetch()) {
+        redirigirConMensaje('tipos.php', 'error', 'Ya existe un tipo con ese nombre.');
+    }
+
     if ($id > 0) {
         $sqlUpd = "UPDATE tbl_hotwheels_tipos SET nombre=? WHERE id=?";
         $paramsUpd = [$nombre, $id];
