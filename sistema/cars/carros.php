@@ -3,6 +3,18 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 requerirPermiso(34);
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'rotar_foto') {
+    header('Content-Type: application/json');
+    $idArchivo = (int)($_POST['id_archivo'] ?? 0);
+    $resultado = $idArchivo > 0 ? rotarFotoCarro($pdo, $idArchivo) : false;
+    if ($resultado) {
+        echo json_encode(['ok' => true] + $resultado);
+    } else {
+        echo json_encode(['ok' => false, 'mensaje' => 'No se pudo girar la foto.']);
+    }
+    exit;
+}
+
 if (isset($_GET['toggle'])) {
     $id = (int)$_GET['toggle'];
     $sqlToggle = "UPDATE tbl_hotwheels_carros SET state = IF(state=1,0,1) WHERE id=?";
@@ -47,10 +59,10 @@ $fotosPorCarro = [];
 if ($carros) {
     $idsCarros = array_column($carros, 'id');
     $marcadores = implode(',', array_fill(0, count($idsCarros), '?'));
-    $stmtFotos = $pdo->prepare("SELECT id_tbl_hotwheels_carros, archivo FROM tbl_hotwheels_carros_archivos WHERE id_tbl_hotwheels_carros IN ($marcadores) AND state = 1 ORDER BY id ASC");
+    $stmtFotos = $pdo->prepare("SELECT id, id_tbl_hotwheels_carros, archivo FROM tbl_hotwheels_carros_archivos WHERE id_tbl_hotwheels_carros IN ($marcadores) AND state = 1 ORDER BY id ASC");
     $stmtFotos->execute($idsCarros);
     foreach ($stmtFotos->fetchAll() as $foto) {
-        $fotosPorCarro[$foto['id_tbl_hotwheels_carros']][] = $foto['archivo'];
+        $fotosPorCarro[$foto['id_tbl_hotwheels_carros']][] = ['id' => $foto['id'], 'archivo' => $foto['archivo']];
     }
 }
 
@@ -84,12 +96,13 @@ include __DIR__ . '/../includes/header.php';
                     <td>
                         <?php if ($fotosCarro): ?>
                             <?php
-                                $galeria = array_map(fn($archivo) => [
-                                    'archivo' => resolverRutaArchivoCarro($c['id'], $archivo),
-                                    'miniatura' => resolverRutaMiniaturaCarro($c['id'], $archivo) ?: resolverRutaArchivoCarro($c['id'], $archivo),
+                                $galeria = array_map(fn($f) => [
+                                    'id' => $f['id'],
+                                    'archivo' => resolverRutaArchivoCarro($c['id'], $f['archivo']),
+                                    'miniatura' => resolverRutaMiniaturaCarro($c['id'], $f['archivo']) ?: resolverRutaArchivoCarro($c['id'], $f['archivo']),
                                 ], $fotosCarro);
                             ?>
-                            <img src="<?= limpiar($rutaMiniatura ?: resolverRutaArchivoCarro($c['id'], $fotosCarro[0])) ?>" class="cursor-pointer" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onclick='abrirGaleria(<?= json_encode($c['modelo'], JSON_HEX_APOS|JSON_HEX_QUOT) ?>, <?= json_encode($galeria, JSON_HEX_APOS|JSON_HEX_QUOT) ?>)'>
+                            <img src="<?= limpiar($rutaMiniatura ?: resolverRutaArchivoCarro($c['id'], $fotosCarro[0]['archivo'])) ?>" class="cursor-pointer" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onclick='abrirGaleria(<?= json_encode($c['modelo'], JSON_HEX_APOS|JSON_HEX_QUOT) ?>, <?= json_encode($galeria, JSON_HEX_APOS|JSON_HEX_QUOT) ?>, this)'>
                         <?php else: ?>
                             <i class="bi bi-image text-muted" style="font-size:1.5rem;"></i>
                         <?php endif; ?>
@@ -123,17 +136,19 @@ include __DIR__ . '/../includes/header.php';
             <div class="ficha-item">
                 <div class="d-flex gap-3">
                     <div class="ficha-foto<?= $fotosCarro ? ' cursor-pointer' : '' ?>"
+                         id="fichaFoto<?= $c['id'] ?>"
                          <?php if ($fotosCarro): ?>
                             <?php
-                                $galeria = array_map(fn($archivo) => [
-                                    'archivo' => resolverRutaArchivoCarro($c['id'], $archivo),
-                                    'miniatura' => resolverRutaMiniaturaCarro($c['id'], $archivo) ?: resolverRutaArchivoCarro($c['id'], $archivo),
+                                $galeria = array_map(fn($f) => [
+                                    'id' => $f['id'],
+                                    'archivo' => resolverRutaArchivoCarro($c['id'], $f['archivo']),
+                                    'miniatura' => resolverRutaMiniaturaCarro($c['id'], $f['archivo']) ?: resolverRutaArchivoCarro($c['id'], $f['archivo']),
                                 ], $fotosCarro);
                             ?>
-                            onclick='abrirGaleria(<?= json_encode($c['modelo'], JSON_HEX_APOS|JSON_HEX_QUOT) ?>, <?= json_encode($galeria, JSON_HEX_APOS|JSON_HEX_QUOT) ?>)'
+                            onclick='abrirGaleria(<?= json_encode($c['modelo'], JSON_HEX_APOS|JSON_HEX_QUOT) ?>, <?= json_encode($galeria, JSON_HEX_APOS|JSON_HEX_QUOT) ?>, document.querySelector("#fichaFoto<?= $c['id'] ?> img"))'
                          <?php endif; ?>>
                         <?php if ($rutaMiniatura || $fotosCarro): ?>
-                            <img src="<?= limpiar($rutaMiniatura ?: resolverRutaArchivoCarro($c['id'], $fotosCarro[0])) ?>">
+                            <img src="<?= limpiar($rutaMiniatura ?: resolverRutaArchivoCarro($c['id'], $fotosCarro[0]['archivo'])) ?>">
                         <?php else: ?>
                             <i class="bi bi-image"></i>
                         <?php endif; ?>
@@ -181,16 +196,43 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <script>
-function abrirGaleria(modelo, fotos) {
+const rutaCarros = <?= json_encode(rutaScriptActual()) ?>;
+let elementoGaleriaActual = null;
+
+function abrirGaleria(modelo, fotos, origenImg) {
+    elementoGaleriaActual = origenImg || null;
     document.getElementById('modalGaleriaTitulo').textContent = modelo;
     const cuerpo = document.getElementById('modalGaleriaCuerpo');
     cuerpo.innerHTML = fotos.map(function (f) {
-        return '<div class="col-6 col-md-4">'
+        return '<div class="col-6 col-md-4 text-center">'
             + '<a href="' + f.archivo + '" target="_blank">'
-            + '<img src="' + f.miniatura + '" style="width:100%;max-height:160px;object-fit:cover;border-radius:6px;">'
-            + '</a></div>';
+            + '<img id="fotoGaleria' + f.id + '" src="' + f.miniatura + '" style="width:100%;max-height:160px;object-fit:cover;border-radius:6px;">'
+            + '</a>'
+            + '<button type="button" class="btn btn-sm btn-outline-secondary mt-1 w-100" onclick="rotarFoto(' + f.id + ')"><i class="bi bi-arrow-clockwise"></i> Girar</button>'
+            + '</div>';
     }).join('');
     new bootstrap.Modal(document.getElementById('modalGaleria')).show();
+}
+
+function rotarFoto(idArchivo) {
+    const datos = new FormData();
+    datos.append('accion', 'rotar_foto');
+    datos.append('id_archivo', idArchivo);
+
+    fetch(rutaCarros, { method: 'POST', body: datos })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.ok) {
+                const marcaTiempo = '?t=' + Date.now();
+                const imgModal = document.getElementById('fotoGaleria' + idArchivo);
+                if (imgModal) imgModal.src = data.miniatura + marcaTiempo;
+                if (data.es_portada && elementoGaleriaActual) elementoGaleriaActual.src = data.miniatura + marcaTiempo;
+                mostrarAviso('Foto girada.', 'success');
+            } else {
+                mostrarAviso(data.mensaje || 'No se pudo girar la foto.', 'error');
+            }
+        })
+        .catch(function () { mostrarAviso('No se pudo girar la foto.', 'error'); });
 }
 </script>
 

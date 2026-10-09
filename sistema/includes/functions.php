@@ -154,6 +154,54 @@ function resolverRutaMiniaturaCarro($idCarro, $nombreArchivo) {
     return file_exists(__DIR__ . '/../' . $rel) ? $rel : null;
 }
 
+/** Rota 90° en sentido horario un archivo JPG en disco, sobrescribiéndolo. */
+function rotarImagenJpgEnDisco($ruta) {
+    if (!file_exists($ruta)) return false;
+    $img = @imagecreatefromjpeg($ruta);
+    if (!$img) return false;
+    $rotado = imagerotate($img, -90, 0);
+    imagedestroy($img);
+    if (!$rotado) return false;
+    $ok = imagejpeg($rotado, $ruta, 90);
+    imagedestroy($rotado);
+    return $ok;
+}
+
+/**
+ * Rota 90° (sentido horario) la foto de un auto y su miniatura, sobrescribiendo ambos
+ * archivos en disco (el nombre no cambia, solo el contenido). Devuelve
+ * ['miniatura' => ruta, 'es_portada' => bool] si tuvo éxito, o false si el adjunto no
+ * existe o no se pudo leer como JPG. "es_portada" indica si esta es la foto que se usa
+ * como miniatura de portada en los listados (la de menor id entre las activas del auto),
+ * para que la pantalla que llama también actualice esa miniatura si corresponde.
+ */
+function rotarFotoCarro($pdo, $idArchivo) {
+    $stmt = $pdo->prepare("SELECT * FROM tbl_hotwheels_carros_archivos WHERE id = ? AND state = 1");
+    $stmt->execute([$idArchivo]);
+    $archivo = $stmt->fetch();
+    if (!$archivo) return false;
+
+    $idCarro = (int)$archivo['id_tbl_hotwheels_carros'];
+    $rutaCompleta = __DIR__ . '/../files/carros/folder_' . $idCarro . '/' . $archivo['archivo'];
+    $rutaMiniaturaDisco = __DIR__ . '/../files/carros/folder_' . $idCarro . '/thumbnail/s_' . $archivo['archivo'];
+
+    if (!rotarImagenJpgEnDisco($rutaCompleta)) return false;
+    if (file_exists($rutaMiniaturaDisco)) {
+        rotarImagenJpgEnDisco($rutaMiniaturaDisco);
+    }
+
+    registrarAuditoria($pdo, 'UPD', 'tbl_hotwheels_carros_archivos', $idArchivo, '', 'Rotación de foto del auto (90° horario)');
+
+    $stmtPortada = $pdo->prepare("SELECT a.id FROM tbl_hotwheels_carros_archivos a WHERE a.id_tbl_hotwheels_carros = ? AND a.state = 1 ORDER BY a.id ASC LIMIT 1");
+    $stmtPortada->execute([$idCarro]);
+    $filaPortada = $stmtPortada->fetch();
+
+    return [
+        'miniatura' => resolverRutaMiniaturaCarro($idCarro, $archivo['archivo']) ?: resolverRutaArchivoCarro($idCarro, $archivo['archivo']),
+        'es_portada' => $filaPortada && (int)$filaPortada['id'] === $idArchivo,
+    ];
+}
+
 /** Ruta (relativa al webroot sistema/) del logo real de una marca, o null si no existe. */
 function resolverRutaLogoMarca($idMarca) {
     $rel = 'files/marcas/folder_' . $idMarca . '/fot_' . $idMarca . '.jpg';
